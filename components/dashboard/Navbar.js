@@ -1,14 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, Search, Building2, Menu, LogOut, ChevronDown } from "lucide-react";
 import { logoutUser } from "@/services/auth-service";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Navbar({ onMenuClick }) {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const token = await currentUser.getIdToken();
+          const res = await fetch("/api/auth/verify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ token }),
+          });
+          const data = await res.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+          } else {
+            setUser(currentUser);
+          }
+        } catch (e) {
+          console.error("Error loading user profile details:", e);
+          setUser(currentUser);
+        }
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -23,6 +55,20 @@ export default function Navbar({ onMenuClick }) {
       console.error("Error during logout:", err);
     }
   };
+
+  const initials = user
+    ? (user.firstName && user.lastName
+        ? (user.firstName[0] + user.lastName[0]).toUpperCase()
+        : (user.displayName
+            ? user.displayName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+            : (user.email?.[0]?.toUpperCase() || "U")))
+    : "RS";
+
+  const fullName = user
+    ? (user.firstName && user.lastName
+        ? `${user.firstName} ${user.lastName}`
+        : (user.displayName || user.email || "User"))
+    : "RS";
 
   return (
     <div className="flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 h-[72px] border-b bg-brand-bgCard border-brand-border">
@@ -85,12 +131,11 @@ export default function Navbar({ onMenuClick }) {
             className="flex items-center gap-2 md:gap-3 cursor-pointer bg-transparent border-none p-0 outline-none text-left"
           >
             <div className="w-8 h-8 md:w-9 md:h-9 rounded-full text-white flex items-center justify-center font-bold text-[13px] md:text-[14px] bg-brand-navy">
-              RS
+              {initials}
             </div>
             <div className="hidden md:flex flex-col">
-              <span className="text-[13px] font-semibold text-brand-navy">RS</span>
-              <span className="text-[11px] text-brand-slate flex items-center gap-1">
-                Free Plan <ChevronDown size={12} className="text-brand-slateLight" />
+              <span className="text-[13px] font-semibold text-brand-navy flex items-center gap-1">
+                {fullName} <ChevronDown size={12} className="text-brand-slateLight" />
               </span>
             </div>
           </button>

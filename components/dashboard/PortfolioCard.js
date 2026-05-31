@@ -25,13 +25,11 @@ export default function PortfolioCard({ property }) {
   return (
     <Link href={`/property/${property.id}`} className="no-underline text-inherit flex w-full">
       <div className="w-full bg-brand-bgCard rounded-2xl border border-brand-border overflow-hidden shadow-brand flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-brand-md cursor-pointer">
-        {/* Image Container */}
-        <div className="relative h-[200px] w-full">
-          <img
-            src={image}
-            alt={property.projectName}
-            className="w-full h-full object-cover"
-          />
+        {/* Project Name Header (Replaces raw Image) */}
+        <div className="relative h-[130px] w-full bg-gradient-to-br from-brand-navy to-brand-navyMid flex items-center justify-center p-5 text-center">
+          <span className="text-[17px] font-bold text-white tracking-tight leading-snug max-w-[200px]">
+            {property.projectName || "Unnamed Property"}
+          </span>
           <div className="absolute top-3 left-3 bg-white text-brand-navy px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
             {property.currentUse || "Portfolio"}
           </div>

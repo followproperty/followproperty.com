@@ -12,13 +12,11 @@ export default function PropertyCard({ property }) {
 
   return (
     <div className="bg-brand-bgCard rounded-2xl border border-brand-border overflow-hidden shadow-brand flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-brand-md cursor-pointer">
-      {/* Image Container */}
-      <div className="relative h-[200px] w-full">
-        <img
-          src={property.image}
-          alt={property.title}
-          className="w-full h-full object-cover"
-        />
+      {/* Property Name Header (Replaces raw Image) */}
+      <div className="relative h-[130px] w-full bg-gradient-to-br from-brand-navy to-brand-navyMid flex items-center justify-center p-5 text-center">
+        <span className="text-[17px] font-bold text-white tracking-tight leading-snug max-w-[200px]">
+          {property.title}
+        </span>
         <div className={`absolute top-3 left-3 text-white px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-[0_2px_8px_rgba(0,0,0,0.15)] ${
           isReady ? "bg-brand-emerald" : "bg-brand-amber"
         }`}>

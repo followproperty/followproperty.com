@@ -84,8 +84,8 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Upgrade Card */}
-        <div className="p-4 rounded-xl bg-brand-bgAlt border border-brand-border mt-6">
+        {/* Upgrade Card - Commented out for now */}
+        {/* <div className="p-4 rounded-xl bg-brand-bgAlt border border-brand-border mt-6">
           <div className="w-8 h-8 rounded-lg bg-brand-amberBg border border-brand-amberBorder flex items-center justify-center mb-3">
             <Sparkles size={16} className="text-brand-amber" />
           </div>
@@ -98,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <button className="w-full py-2 rounded-lg bg-brand-navy text-white border-none text-[13px] font-semibold cursor-pointer transition-opacity duration-200 hover:opacity-90">
             Upgrade Now
           </button>
-        </div>
+        </div> */}
       </div>
     </>
   );
