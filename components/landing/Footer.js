@@ -115,7 +115,7 @@ export default function Footer() {
             </p>
 
             {/* Contact Details */}
-            <div className="flex flex-col items-start gap-3.5 w-full">
+            <div className="flex flex-col items-start gap-3.5 w-full max-w-sm">
               {contact.email && (
                 <a 
                   href={`mailto:${contact.email}`} 
@@ -150,7 +150,7 @@ export default function Footer() {
             </h3>
             
             {/* Dynamic Grid Layout to keep links in exact mockup columns */}
-            <div className="flex gap-8 sm:gap-20 md:gap-24 w-full flex-wrap">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:gap-x-16 w-full">
               {quickLinks.columns.map((column, colIdx) => (
                 <ul key={colIdx} className="flex flex-col gap-3.5 list-none p-0 m-0">
                   {column.map((link) => (
@@ -203,7 +203,7 @@ export default function Footer() {
           </p>
 
           {/* Bottom Legal Links */}
-          <div className="flex items-center gap-6 flex-wrap justify-center">
+          <div className="flex items-center gap-y-2 gap-x-4 sm:gap-6 flex-wrap justify-center">
             {bottom.links.map((link) => (
               <a
                 key={link.label}
