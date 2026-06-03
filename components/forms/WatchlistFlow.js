@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -66,9 +66,48 @@ export default function WatchlistFlow({ onClose, onSubmitSuccess }) {
     possessionYear: "",
     preferredBuilder: "",
   });
+  const [budgetInput, setBudgetInput] = useState("");
+  const [budgetUnit, setBudgetUnit] = useState("Cr");
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [error, setError] = useState("");
+
+  // Sync and calculate absolute Rupees value
+  useEffect(() => {
+    const val = Number(budgetInput);
+    if (isNaN(val) || val <= 0) {
+      setForm((f) => ({ ...f, budget: "" }));
+      return;
+    }
+
+    let absoluteBudget = 0;
+    if (budgetUnit === "Cr") {
+      absoluteBudget = val * 10000000;
+    } else if (budgetUnit === "Lakh") {
+      absoluteBudget = val * 100000;
+    } else if (budgetUnit === "Rupees") {
+      absoluteBudget = val;
+    }
+
+    setForm((f) => ({ ...f, budget: absoluteBudget }));
+  }, [budgetInput, budgetUnit]);
+
+  // Pre-populate if form.budget starts with a value
+  useEffect(() => {
+    if (form.budget && !budgetInput) {
+      const b = Number(form.budget);
+      if (b >= 10000000) {
+        setBudgetInput(String(b / 10000000));
+        setBudgetUnit("Cr");
+      } else if (b >= 100000) {
+        setBudgetInput(String(b / 100000));
+        setBudgetUnit("Lakh");
+      } else {
+        setBudgetInput(String(b));
+        setBudgetUnit("Rupees");
+      }
+    }
+  }, [form.budget]);
 
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -84,6 +123,11 @@ export default function WatchlistFlow({ onClose, onSubmitSuccess }) {
   async function handleSubmit() {
     if (!requiredFilled) {
       setError("Please fill all required fields.");
+      return;
+    }
+
+    if (Number(form.budget) <= 0) {
+      setError("Budget must be a positive number.");
       return;
     }
 
@@ -267,24 +311,46 @@ export default function WatchlistFlow({ onClose, onSubmitSuccess }) {
             <div className="flex gap-3 mb-1.5">
               <FieldBadge n={5} active={!!form.budget} />
               <label className="text-xs font-semibold text-brand-navyMid pt-1.5 tracking-wider">
-                Budget (₹) <span className="text-brand-teal">*</span>
+                Budget <span className="text-brand-teal">*</span>
               </label>
             </div>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-slateLight text-sm font-semibold pointer-events-none">
-                ₹
-              </span>
-              <input
-                type="number"
-                value={form.budget}
-                onChange={(e) => set("budget")(e.target.value)}
-                placeholder="e.g. 7500000"
-                className="w-full pl-7 pr-3.5 py-2.5 text-sm text-brand-navy bg-brand-bgCard border border-brand-borderMid rounded-[10px] outline-none transition-all duration-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="col-span-2 relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-slateLight text-sm font-semibold pointer-events-none">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  value={budgetInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val && Number(val) < 0) return; // block negative numbers
+                    setBudgetInput(val);
+                  }}
+                  placeholder={budgetUnit === "Cr" ? "e.g. 3" : budgetUnit === "Lakh" ? "e.g. 75" : "e.g. 7500000"}
+                  className="w-full pl-7 pr-3.5 py-2.5 text-sm text-brand-navy bg-brand-bgCard border border-brand-borderMid rounded-[10px] outline-none transition-all duration-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+                />
+              </div>
+              <div>
+                <select
+                  value={budgetUnit}
+                  onChange={(e) => setBudgetUnit(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm text-brand-navy bg-brand-bgCard border border-brand-borderMid rounded-[10px] outline-none transition-all duration-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 appearance-none bg-no-repeat bg-[right_14px_center] cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C97A8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                  }}
+                >
+                  <option value="Cr">Cr</option>
+                  <option value="Lakh">Lakh</option>
+                  <option value="Rupees">Rupees</option>
+                </select>
+              </div>
             </div>
             {form.budget && (
-              <p className="text-[11px] text-brand-teal mt-1">
-                ≈ ₹{(Number(form.budget) / 100000).toFixed(1)} Lakh
+              <p className="text-[11px] text-brand-teal mt-1 font-semibold">
+                ≈ ₹{Number(form.budget).toLocaleString("en-IN")} absolute Rupees
               </p>
             )}
           </motion.div>

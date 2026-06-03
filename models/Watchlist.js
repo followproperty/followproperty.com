@@ -35,6 +35,10 @@ const WatchlistSchema = new mongoose.Schema(
     budget: {
       type: Number,
       required: [true, 'Budget is required'],
+      validate: {
+        validator: (val) => val > 0,
+        message: 'Budget must be a positive number greater than zero',
+      },
     },
     preApprovedBank: {
       type: String,

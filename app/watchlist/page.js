@@ -16,11 +16,9 @@ import {
   Wallet
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import StatsCards from "@/components/dashboard/StatsCards";
 import PropertyGrid from "@/components/dashboard/PropertyGrid";
 import EmptyState from "@/components/dashboard/EmptyState";
 import WatchlistFlow from "@/components/forms/WatchlistFlow";
-import { filterProperties } from "@/utils/filterProperties";
 
 export default function WatchlistPage() {
   const [mounted, setMounted] = useState(false);
@@ -45,9 +43,18 @@ export default function WatchlistPage() {
           // Sync to sessionStorage optionally
           sessionStorage.setItem("watchlistFilters", JSON.stringify(latestWatchlist));
           
-          // Filter matching properties
-          const matched = filterProperties(latestWatchlist);
-          setProperties(matched);
+          // Fetch live database matching projects from V1 Matching Engine
+          const resMatches = await fetch(`/api/watchlist/matches?watchlistId=${latestWatchlist._id}`);
+          if (resMatches.ok) {
+            const jsonMatches = await resMatches.json();
+            if (jsonMatches.success && Array.isArray(jsonMatches.data)) {
+              setProperties(jsonMatches.data);
+            } else {
+              setProperties([]);
+            }
+          } else {
+            setProperties([]);
+          }
         } else {
           setProperties([]);
           sessionStorage.removeItem("watchlistFilters");
@@ -142,8 +149,7 @@ export default function WatchlistPage() {
           </button>
         </div>
 
-        {/* Watchlist statistics widgets */}
-        <StatsCards properties={properties} filters={latestWatchlist} />
+
 
         {/* Requirement Summary Card */}
         <div className="bg-brand-bgCard p-6 rounded-3xl border border-brand-border shadow-brand mb-8 animate-in fade-in slide-in-from-top-3">
@@ -215,7 +221,7 @@ export default function WatchlistPage() {
           </div>
 
           {properties.length > 0 ? (
-            <PropertyGrid properties={properties} />
+            <PropertyGrid properties={properties} watchlistId={latestWatchlist._id.toString()} />
           ) : (
             <EmptyState />
           )}
@@ -266,12 +272,6 @@ export default function WatchlistPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-brand-navy/60 backdrop-blur-sm" onClick={() => setEditModalOpen(false)} />
           <div className="relative w-full max-w-4xl bg-brand-bgCard rounded-3xl overflow-hidden shadow-2xl border border-brand-border max-h-[90vh] flex flex-col z-10 animate-in fade-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setEditModalOpen(false)}
-              className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-brand-bgAlt border border-brand-border flex items-center justify-center text-brand-slate hover:text-brand-navy hover:bg-brand-borderMid cursor-pointer transition-colors duration-150"
-            >
-              <X size={16} />
-            </button>
             <div className="flex-1 overflow-y-auto">
               <WatchlistFlow 
                 onClose={() => setEditModalOpen(false)} 

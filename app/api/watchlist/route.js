@@ -34,6 +34,14 @@ export async function POST(request) {
 
     const body = await request.json();
     
+    // Validate budget (strictly greater than zero)
+    if (!body.budget || isNaN(Number(body.budget)) || Number(body.budget) <= 0) {
+      return NextResponse.json(
+        { success: false, error: "Budget must be a positive number greater than zero." },
+        { status: 400 }
+      );
+    }
+    
     // Automatically inject user ownership mapping parameters
     const watchlist = await Watchlist.create({
       ...body,

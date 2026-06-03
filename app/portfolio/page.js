@@ -326,12 +326,6 @@ export default function PortfolioPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-brand-navy/60 backdrop-blur-sm" onClick={() => setAddModalOpen(false)} />
           <div className="relative w-full max-w-4xl bg-brand-bgCard rounded-3xl overflow-hidden shadow-2xl border border-brand-border max-h-[90vh] flex flex-col z-10 animate-in fade-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setAddModalOpen(false)}
-              className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-brand-bgAlt border border-brand-border flex items-center justify-center text-brand-slate hover:text-brand-navy hover:bg-brand-borderMid cursor-pointer transition-colors duration-150"
-            >
-              <X size={16} />
-            </button>
             <div className="flex-1 overflow-y-auto">
               <PortfolioFlow 
                 onClose={() => setAddModalOpen(false)} 

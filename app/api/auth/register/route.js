@@ -1,6 +1,7 @@
 import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
+import { isAdminEmail } from "@/config/admin/admin-emails";
 
 export async function POST(req) {
   try {
@@ -15,6 +16,8 @@ export async function POST(req) {
       );
     }
 
+    const isAllowedAdmin = isAdminEmail(email);
+
     // Check if user already exists
     let user = await User.findOne({ firebaseUid });
     if (!user) {
@@ -26,9 +29,18 @@ export async function POST(req) {
         phoneNumber: phoneNumber || "",
         city: city || "",
         state: state || "",
-        role: "user",
+        role: isAllowedAdmin ? "admin" : "user",
         isOnboarded: false
       });
+      console.log(`[Register Route] Created new user ${email} with role: ${user.role}`);
+    } else {
+      // Bootstrapping/Promotion: If email is in allowed list, promote them to "admin" if they aren't already.
+      // Do not demote them if their email is not in the list (MongoDB role is long-term source of truth).
+      if (isAllowedAdmin && user.role !== "admin") {
+        user.role = "admin";
+        await user.save();
+        console.log(`[Register Route] Promoted existing user ${email} to admin.`);
+      }
     }
 
     return NextResponse.json({ success: true, data: user }, { status: 201 });

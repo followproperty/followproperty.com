@@ -9,23 +9,12 @@ export default function EmptyState() {
       <div className="w-16 h-16 rounded-2xl bg-brand-bgAlt flex items-center justify-center mb-4">
         <SearchX size={32} className="text-brand-slate" />
       </div>
-      <h3 className="text-xl font-bold text-brand-navy mb-2">
-        No properties found
+      <h3 className="text-lg font-bold text-brand-navy mb-2 max-w-[500px] leading-snug">
+        No matching projects currently available for your requirements.
       </h3>
-      <p className="text-sm text-brand-slate max-w-[400px] leading-relaxed mb-6">
-        We couldn't find any properties matching your exact criteria. Try adjusting your filters or budget to see more results.
+      <p className="text-xs sm:text-sm text-brand-slate max-w-[460px] leading-relaxed mb-0">
+        We'll continue monitoring newly added projects and notify you when suitable opportunities become available.
       </p>
-      <button
-        className="px-5 py-2.5 rounded-lg bg-brand-navy text-white border-none text-sm font-semibold cursor-pointer transition-opacity duration-200 hover:opacity-90"
-        onClick={() => {
-          if (typeof window !== "undefined") {
-            sessionStorage.removeItem("watchlistFilters");
-            window.location.reload();
-          }
-        }}
-      >
-        Clear Filters
-      </button>
     </div>
   );
 }

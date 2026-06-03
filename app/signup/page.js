@@ -5,6 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthLayout from "@/components/layout/AuthLayout";
 import { signupWithEmail } from "@/services/auth-service";
+import { Eye, EyeOff } from "lucide-react";
+import { statesList, indiaStatesCities } from "@/constants/indiaStatesCities";
+
+const toTitleCase = (str) => {
+  if (!str) return "";
+  return str
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -12,8 +24,11 @@ export default function Signup() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [isManualCity, setIsManualCity] = useState(false);
+  const [customCity, setCustomCity] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,12 +41,14 @@ export default function Signup() {
     setLoading(true);
 
     try {
+      const finalCity = isManualCity ? customCity : city;
+
       const profileData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phoneNumber: phoneNumber.trim(),
-        city: city.trim(),
-        state: state.trim(),
+        city: toTitleCase(finalCity),
+        state: toTitleCase(state),
       };
       
       const result = await signupWithEmail(email, password, profileData);
@@ -41,6 +58,8 @@ export default function Signup() {
         setLastName("");
         setPhoneNumber("");
         setCity("");
+        setCustomCity("");
+        setIsManualCity(false);
         setState("");
         setEmail("");
         setPassword("");
@@ -136,35 +155,93 @@ export default function Signup() {
             />
           </div>
 
-          {/* City & State */}
+          {/* State & City Dropdowns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
-                City <span className="text-brand-amber">*</span>
-              </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Gurgaon"
-                disabled={loading}
-                required
-                className="w-full bg-white border border-brand-borderMid rounded-[10px] px-4 py-3 text-[14px] text-brand-navy placeholder:text-brand-slateLight focus:outline-none focus:ring-2 focus:ring-brand-amber/20 focus:border-brand-amber transition-all shadow-sm disabled:opacity-50"
-              />
-            </div>
             <div>
               <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
                 State <span className="text-brand-amber">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={state}
-                onChange={(e) => setState(e.target.value)}
-                placeholder="Haryana"
+                onChange={(e) => {
+                  setState(e.target.value);
+                  setCity(""); // Reset city when state changes
+                }}
                 disabled={loading}
                 required
-                className="w-full bg-white border border-brand-borderMid rounded-[10px] px-4 py-3 text-[14px] text-brand-navy placeholder:text-brand-slateLight focus:outline-none focus:ring-2 focus:ring-brand-amber/20 focus:border-brand-amber transition-all shadow-sm disabled:opacity-50"
-              />
+                className="w-full bg-white border border-brand-borderMid rounded-[10px] px-4 py-3 text-[14px] text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-amber/20 focus:border-brand-amber transition-all shadow-sm disabled:opacity-50 appearance-none bg-no-repeat bg-[right_16px_center] cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C97A8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                }}
+              >
+                <option value="">Select State</option>
+                {statesList.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider">
+                  City <span className="text-brand-amber">*</span>
+                </label>
+                {isManualCity && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsManualCity(false);
+                      setCustomCity("");
+                    }}
+                    className="text-[10px] text-brand-amber font-bold cursor-pointer hover:underline bg-transparent border-none p-0 focus:outline-none"
+                  >
+                    ← Select from List
+                  </button>
+                )}
+              </div>
+              {isManualCity ? (
+                <input
+                  type="text"
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder="e.g. Almora"
+                  disabled={loading}
+                  required
+                  className="w-full bg-white border border-brand-borderMid rounded-[10px] px-4 py-3 text-[14px] text-brand-navy placeholder:text-brand-slateLight focus:outline-none focus:ring-2 focus:ring-brand-amber/20 focus:border-brand-amber transition-all shadow-sm disabled:opacity-50 animate-in fade-in duration-200"
+                />
+              ) : (
+                <select
+                  value={city}
+                  onChange={(e) => {
+                    if (e.target.value === "manual") {
+                      setIsManualCity(true);
+                      setCity("");
+                    } else {
+                      setCity(e.target.value);
+                    }
+                  }}
+                  disabled={loading || !state}
+                  required
+                  className="w-full bg-white border border-brand-borderMid rounded-[10px] px-4 py-3 text-[14px] text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-amber/20 focus:border-brand-amber transition-all shadow-sm disabled:opacity-50 appearance-none bg-no-repeat bg-[right_16px_center] cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C97A8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                  }}
+                >
+                  <option value="">
+                    {state ? "Select City" : "Select State First"}
+                  </option>
+                  {state &&
+                    indiaStatesCities[state]?.map((ct) => (
+                      <option key={ct} value={ct}>
+                        {ct}
+                      </option>
+                    ))}
+                  {state && (
+                    <option value="manual">City not listed? Enter manually</option>
+                  )}
+                </select>
+              )}
             </div>
           </div>
 
@@ -189,15 +266,30 @@ export default function Signup() {
             <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
               Password <span className="text-brand-amber">*</span>
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              disabled={loading}
-              required
-              className="w-full bg-white border border-brand-borderMid rounded-[10px] px-4 py-3 text-[14px] text-brand-navy placeholder:text-brand-slateLight focus:outline-none focus:ring-2 focus:ring-brand-amber/20 focus:border-brand-amber transition-all shadow-sm disabled:opacity-50"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                disabled={loading}
+                required
+                className="w-full bg-white border border-brand-borderMid rounded-[10px] pl-4 pr-11 py-3 text-[14px] text-brand-navy placeholder:text-brand-slateLight focus:outline-none focus:ring-2 focus:ring-brand-amber/20 focus:border-brand-amber transition-all shadow-sm disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-slateLight hover:text-brand-navy transition-colors focus:outline-none p-1.5 rounded-md disabled:opacity-50 cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           <button
