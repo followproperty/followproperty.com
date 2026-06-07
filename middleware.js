@@ -49,7 +49,7 @@ export function middleware(request) {
   if (token && isAuthRoute) {
     if (role === "admin") {
       return NextResponse.redirect(new URL("/admin", request.url));
-    } else if (role === "builder") {
+    } else if (role === "builder" || builderStatus === "draft" || builderStatus === "rejected" || builderStatus === "pending") {
       return NextResponse.redirect(getBuilderRedirectUrl(builderStatus, request.url));
     } else {
       return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -63,33 +63,36 @@ export function middleware(request) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
-    // Builder Route Protection: Only builders can access builder routes
+    // Builder Route Protection: Allow registered builder applicants or approved builders
     if (isBuilderRoute) {
-      if (role !== "builder") {
+      const isApprovedBuilder = role === "builder" || builderStatus === "approved";
+      const isApplyingBuilder = builderStatus === "draft" || builderStatus === "rejected" || builderStatus === "pending";
+
+      if (!isApprovedBuilder && !isApplyingBuilder) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
       
       // Enforce correct builder sub-route based on application status
-      if (builderStatus === "approved" && pathname !== "/builder-dashboard") {
+      if (isApprovedBuilder && pathname !== "/builder-dashboard") {
         return NextResponse.redirect(new URL("/builder-dashboard", request.url));
       }
       if (builderStatus === "pending" && pathname !== "/builder-application-status") {
         return NextResponse.redirect(new URL("/builder-application-status", request.url));
       }
-      if ((!builderStatus || builderStatus === "draft" || builderStatus === "rejected") && pathname !== "/builder-register") {
+      if ((builderStatus === "draft" || builderStatus === "rejected") && pathname !== "/builder-register") {
         return NextResponse.redirect(new URL("/builder-register", request.url));
       }
     }
 
-    // Normal User Route Protection: Builders cannot access normal user views
-    if (role === "builder") {
-      const isUserRoute = 
-        pathname.startsWith("/dashboard") || 
-        pathname.startsWith("/portfolio") || 
-        pathname.startsWith("/watchlist") || 
-        pathname.startsWith("/onboarding");
+    // Normal User Route Protection: Builders & builder applicants cannot access normal user views
+    const isUserRoute = 
+      pathname.startsWith("/dashboard") || 
+      pathname.startsWith("/portfolio") || 
+      pathname.startsWith("/watchlist") || 
+      pathname.startsWith("/onboarding");
 
-      if (isUserRoute) {
+    if (isUserRoute) {
+      if (role === "builder" || builderStatus === "draft" || builderStatus === "rejected" || builderStatus === "pending") {
         return NextResponse.redirect(getBuilderRedirectUrl(builderStatus, request.url));
       }
     }
