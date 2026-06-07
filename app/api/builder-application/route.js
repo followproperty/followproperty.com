@@ -57,10 +57,21 @@ export async function POST(req) {
       { new: true, upsert: true }
     );
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { success: true, data: application },
       { status: 200 }
     );
+
+    // Update the builder_status cookie dynamically on submission
+    response.cookies.set("builder_status", "pending", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     console.error("Error in POST /api/builder-application:", error);
     return NextResponse.json(

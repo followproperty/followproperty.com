@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import AuthLayout from "@/components/layout/AuthLayout";
 import { signupWithEmail } from "@/services/auth-service";
 import { Eye, EyeOff } from "lucide-react";
 import { statesList, indiaStatesCities } from "@/constants/indiaStatesCities";
+import { motion, AnimatePresence } from "framer-motion";
 
 const toTitleCase = (str) => {
   if (!str) return "";
@@ -32,9 +33,19 @@ function SignupForm() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const isBuilder = searchParams.get("role") === "builder";
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 12000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -56,7 +67,9 @@ function SignupForm() {
       
       const result = await signupWithEmail(email, password, profileData);
       if (result.success && result.requiresVerification) {
-        setSuccessMessage(result.message || "Verification email sent. Please verify your email before login.");
+        const msg = result.message || "Verification email sent. Please verify your email before login.";
+        setSuccessMessage(msg);
+        setToast({ message: msg, type: "success" });
         setFirstName("");
         setLastName("");
         setPhoneNumber("");
@@ -79,6 +92,7 @@ function SignupForm() {
           message = "Please enter a valid email address.";
         }
         setError(message);
+        setToast({ message, type: "error" });
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -322,6 +336,43 @@ function SignupForm() {
           </Link>
         </p>
       </div>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.22 }}
+            className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-32px)] max-w-md p-4.5 rounded-2xl border shadow-xl flex items-start gap-3 bg-white ${
+              toast.type === "success" 
+                ? "border-emerald-100 bg-emerald-50/95 text-emerald-800" 
+                : "border-red-100 bg-red-50/95 text-red-800"
+            }`}
+          >
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${
+              toast.type === "success" ? "bg-emerald-500" : "bg-red-500"
+            }`}>
+              {toast.type === "success" ? "✓" : "!"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-0.5 m-0 text-inherit">
+                {toast.type === "success" ? "Verification Sent" : "Action Required"}
+              </h4>
+              <p className="text-xs leading-relaxed font-medium m-0 opacity-90 break-words">
+                {toast.message}
+              </p>
+            </div>
+            <button 
+              type="button" 
+              onClick={() => setToast(null)}
+              className="bg-transparent border-none text-[11px] font-bold text-inherit hover:opacity-75 cursor-pointer self-start py-0.5 px-1.5 focus:outline-none"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AuthLayout>
   );
 }

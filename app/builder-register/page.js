@@ -123,6 +123,15 @@ export default function BuilderRegisterPage() {
 
       const data = await res.json();
       if (data.success) {
+        if (typeof window !== "undefined") {
+          const stored = sessionStorage.getItem("currentUser");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            parsed.builderApplicationStatus = "pending";
+            sessionStorage.setItem("currentUser", JSON.stringify(parsed));
+          }
+          sessionStorage.setItem("isAuthenticated", "true");
+        }
         router.push("/builder-application-status");
       } else {
         setError(data.error || "Failed to submit application");
