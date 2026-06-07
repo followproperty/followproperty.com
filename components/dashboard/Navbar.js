@@ -11,12 +11,27 @@ import { onAuthStateChanged } from "firebase/auth";
 export default function Navbar({ onMenuClick }) {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem("currentUser");
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         try {
+          // Pre-populate with cached session user to prevent any layout/button changes
+          const stored = sessionStorage.getItem("currentUser");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed.firebaseUid === currentUser.uid || parsed.uid === currentUser.uid) {
+              setUser(parsed);
+            }
+          }
+
           const token = await currentUser.getIdToken();
           const res = await fetch("/api/auth/verify", {
             method: "POST",
@@ -28,15 +43,22 @@ export default function Navbar({ onMenuClick }) {
           const data = await res.json();
           if (data.success && data.user) {
             setUser(data.user);
+            sessionStorage.setItem("currentUser", JSON.stringify(data.user));
           } else {
             setUser(currentUser);
+            sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
           }
         } catch (e) {
           console.error("Error loading user profile details:", e);
           setUser(currentUser);
+          sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
         }
       } else {
         setUser(null);
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("currentUser");
+          sessionStorage.removeItem("isAuthenticated");
+        }
       }
     });
     return () => unsubscribe();
@@ -47,6 +69,10 @@ export default function Navbar({ onMenuClick }) {
       setDropdownOpen(false);
       const res = await logoutUser();
       if (res.success) {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("currentUser");
+          sessionStorage.removeItem("isAuthenticated");
+        }
         router.push("/login");
       } else {
         console.error("Logout failed:", res.message);

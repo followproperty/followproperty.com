@@ -121,6 +121,11 @@ export const logoutUser = async () => {
     try {
         await signOut(auth);
 
+        if (typeof window !== "undefined") {
+            sessionStorage.removeItem("currentUser");
+            sessionStorage.removeItem("isAuthenticated");
+        }
+
         // Clear the secure HTTP-only cookie on the server
         await fetch("/api/auth/logout", { method: "POST" });
 

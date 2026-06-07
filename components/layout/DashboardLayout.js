@@ -11,8 +11,25 @@ import Footer from "../landing/Footer";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("isAuthenticated") === "true";
+    }
+    return false;
+  });
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== "undefined") {
+      if (sessionStorage.getItem("isAuthenticated") === "true") {
+        return false;
+      }
+      const path = window.location.pathname;
+      const isPublicRoute = path.startsWith("/projects") || path.startsWith("/builders") || path === "/";
+      if (isPublicRoute) {
+        return false;
+      }
+    }
+    return true;
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -20,6 +37,9 @@ export default function DashboardLayout({ children }) {
       try {
         if (currentUser) {
           setIsAuthenticated(true);
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("isAuthenticated", "true");
+          }
           const token = await currentUser.getIdToken();
           const res = await fetch("/api/auth/verify", {
             method: "POST",
@@ -44,6 +64,10 @@ export default function DashboardLayout({ children }) {
           }
         } else {
           setIsAuthenticated(false);
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("isAuthenticated");
+            sessionStorage.removeItem("currentUser");
+          }
         }
       } catch (e) {
         console.error("Error verifying in DashboardLayout:", e);
