@@ -59,9 +59,6 @@ export default function FloatingContactButtons() {
           className="group relative flex items-center justify-center w-11 h-11 md:w-[52px] md:h-[52px] rounded-full bg-brand-navy text-white shadow-[0_4px_16px_rgba(15,22,41,0.25)] hover:bg-brand-blue transition-colors duration-300"
           aria-label="Call Support"
         >
-          {/* Outer Pulse Rings */}
-          <div className="absolute inset-0 rounded-full bg-brand-navy opacity-20 animate-ping group-hover:bg-brand-blue group-hover:opacity-10 pointer-events-none" />
-          
           {/* Tooltip Label */}
           <span className="absolute right-14 pr-2 opacity-0 -translate-x-3 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 whitespace-nowrap bg-white text-brand-navy text-[12.5px] font-semibold px-3.5 py-2 rounded-xl shadow-[0_2px_8px_rgba(15,22,41,0.06),_0_8px_32px_rgba(15,22,41,0.08)] border border-brand-border">
             Call Support
@@ -80,9 +77,6 @@ export default function FloatingContactButtons() {
           className="group relative flex items-center justify-center w-11 h-11 md:w-[52px] md:h-[52px] rounded-full bg-[#25D366] text-white shadow-[0_4px_16px_rgba(37,211,102,0.35)] hover:bg-[#20ba5a] transition-colors duration-300"
           aria-label="Chat on WhatsApp"
         >
-          {/* Outer Pulse Rings */}
-          <div className="absolute inset-0 rounded-full bg-[#25D366] opacity-20 animate-ping group-hover:opacity-10 pointer-events-none" />
- 
           {/* Tooltip Label */}
           <span className="absolute right-14 pr-2 opacity-0 -translate-x-3 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 whitespace-nowrap bg-white text-brand-navy text-[12.5px] font-semibold px-3.5 py-2 rounded-xl shadow-[0_2px_8px_rgba(15,22,41,0.06),_0_8px_32px_rgba(15,22,41,0.08)] border border-brand-border">
             Chat on WhatsApp

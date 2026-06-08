@@ -97,7 +97,7 @@ export default function Navbar({ onMenuClick }) {
     : "RS";
 
   return (
-    <div className="flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 h-[72px] border-b bg-brand-bg-card border-brand-border">
+    <div className="flex items-center justify-between px-4 md:px-8 sticky top-0 z-30 h-[72px] border-b bg-brand-bg-card border-brand-border">
       {/* Brand */}
       <div className="flex items-center gap-3">
         <Link
