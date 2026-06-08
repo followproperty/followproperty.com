@@ -1,11 +1,11 @@
 import React from "react";
-import Link from "next/link";
-import { ChevronLeft, ChevronRight, Building, MapPin, ListFilter } from "lucide-react";
+import { Building, ListFilter } from "lucide-react";
 import connectToDatabase from "@/lib/db";
 import MarketProject from "@/models/MarketProject";
+import UpcomingProject from "@/models/UpcomingProject";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import PropertyGrid from "@/components/dashboard/PropertyGrid";
 import ProjectsFilterClient from "./ProjectsFilterClient";
+import ExpandableProjectSection from "./ExpandableProjectSection";
 import { normalizeBuilder } from "@/utils/admin/normalization";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,36 @@ export const metadata = {
   description: "Explore our comprehensive directory of real estate developments, residential apartments, plots, and commercial projects. Filter by city, status, and developer.",
 };
 
+function mapProjectToCard(p) {
+  const isReady =
+    p.status === "Ready" ||
+    p.status === "Ready to Move" ||
+    p.status === "Completed";
+
+  return {
+    id: p._id.toString(),
+    _id: p._id.toString(),
+    title: p.projectName,
+    projectName: p.projectName,
+    status: p.status === "Upcoming" ? "Upcoming" : (isReady ? "Ready to Move" : "Under Construction"),
+    specificType:
+      p.configuration ||
+      (p.bhk && p.bhk.length > 0 ? `${p.bhk.join(", ")} BHK` : p.propertyType || "Residential"),
+    locality: p.locality || p.location || "Local",
+    city: p.city || "",
+    builder: normalizeBuilder(p.builderName || ""),
+    possessionYear: p.possessionYear === 0 ? "Ready to Move" : p.possessionYear || p.possessionDate || "TBD",
+    superArea: p.superArea
+      ? parseFloat(String(p.superArea).replace(/,/g, "")) || 0
+      : p.avgAreaSqft
+      ? parseFloat(String(p.avgAreaSqft).replace(/,/g, "")) || 0
+      : 0,
+    minPrice: p.minPrice || 0,
+    maxPrice: p.maxPrice || 0,
+    marketPrice: p.marketPrice,
+  };
+}
+
 export default async function ProjectsPage({ searchParams }) {
   // Await page searchParams
   const params = await searchParams;
@@ -22,22 +52,32 @@ export default async function ProjectsPage({ searchParams }) {
   const builderParam = params.builder || "All";
   const propertyTypeParam = params.propertyType || "All";
   const statusParam = params.status || "All";
-  const pageParam = parseInt(params.page, 10) || 1;
 
   await connectToDatabase();
 
-  // 1. Fetch metadata lists for filter choices
-  const rawCities = await MarketProject.distinct("city");
-  const rawBuilders = await MarketProject.distinct("builderName");
-  const rawPropertyTypes = await MarketProject.distinct("propertyType");
-  const rawStatuses = await MarketProject.distinct("status");
+  // 1. Fetch metadata lists for filter choices from both collections
+  const [
+    marketCities, upcomingCities,
+    marketBuilders, upcomingBuilders,
+    marketPropertyTypes, upcomingPropertyTypes,
+    marketStatuses, upcomingStatuses
+  ] = await Promise.all([
+    MarketProject.distinct("city"),
+    UpcomingProject.distinct("city"),
+    MarketProject.distinct("builderName"),
+    UpcomingProject.distinct("builderName"),
+    MarketProject.distinct("propertyType"),
+    UpcomingProject.distinct("propertyType"),
+    MarketProject.distinct("status"),
+    UpcomingProject.distinct("status")
+  ]);
 
-  // Normalize data lists
-  const cities = rawCities.filter(Boolean).sort();
-  const propertyTypes = rawPropertyTypes.filter(Boolean).sort();
-  const statuses = rawStatuses.filter(Boolean).sort();
+  // Merge and normalize metadata lists
+  const cities = Array.from(new Set([...marketCities, ...upcomingCities].filter(Boolean))).sort();
+  const propertyTypes = Array.from(new Set([...marketPropertyTypes, ...upcomingPropertyTypes].filter(Boolean))).sort();
+  const statuses = Array.from(new Set([...marketStatuses, ...upcomingStatuses].filter(Boolean))).sort();
 
-  // Normalize builders to group casing variations (e.g. DLF vs dlf)
+  const rawBuilders = Array.from(new Set([...marketBuilders, ...upcomingBuilders]));
   const normalizedBuildersSet = new Set();
   rawBuilders.forEach((b) => {
     if (b && b.trim()) {
@@ -69,57 +109,20 @@ export default async function ProjectsPage({ searchParams }) {
     query.status = statusParam;
   }
 
-  // 3. Pagination limits (12 items per page)
-  const limit = 12;
-  const skip = (pageParam - 1) * limit;
+  // 3. Query initial 3 items and counts for both collections
+  const [upcomingDb, marketDb, totalUpcoming, totalMarket] = await Promise.all([
+    UpcomingProject.find(query).sort({ createdAt: -1 }).limit(3).lean(),
+    MarketProject.find(query).sort({ createdAt: -1 }).limit(3).lean(),
+    UpcomingProject.countDocuments(query),
+    MarketProject.countDocuments(query)
+  ]);
 
-  // 4. Fetch matching projects & total counts
-  const dbProjects = await MarketProject.find(query)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  // Map DB records to clean PropertyCard format
+  const mappedUpcoming = upcomingDb.map(p => mapProjectToCard(p));
+  const mappedMarket = marketDb.map(p => mapProjectToCard(p));
 
-  const totalProjects = await MarketProject.countDocuments(query);
-  const totalPages = Math.ceil(totalProjects / limit);
-
-  // 5. Map DB records to clean PropertyCard format
-  const mappedProperties = dbProjects.map((p) => {
-    const isReady =
-      p.status === "Ready" ||
-      p.status === "Ready to Move" ||
-      p.status === "Completed";
-
-    return {
-      id: p._id.toString(),
-      _id: p._id.toString(),
-      title: p.projectName,
-      projectName: p.projectName,
-      status: isReady ? "Ready to Move" : "Under Construction",
-      specificType:
-        p.configuration ||
-        (p.bhk && p.bhk.length > 0 ? `${p.bhk.join(", ")} BHK` : p.propertyType || "Residential"),
-      locality: p.locality || p.location || "Local",
-      city: p.city || "",
-      builder: normalizeBuilder(p.builderName),
-      possessionYear: p.possessionYear === 0 ? "Ready to Move" : p.possessionYear || p.possessionDate || "TBD",
-      superArea: p.superArea ? parseFloat(p.superArea.replace(/,/g, "")) : (p.avgAreaSqft ? parseFloat(p.avgAreaSqft.replace(/,/g, "")) : 0),
-      minPrice: p.minPrice || 0,
-      maxPrice: p.maxPrice || 0,
-      marketPrice: p.marketPrice,
-    };
-  });
-
-  // Helper function to reconstruct pagination URLs preserving query parameters
-  const buildPageLink = (pageNum) => {
-    const linkParams = new URLSearchParams();
-    if (cityParam !== "All") linkParams.set("city", cityParam);
-    if (builderParam !== "All") linkParams.set("builder", builderParam);
-    if (propertyTypeParam !== "All") linkParams.set("propertyType", propertyTypeParam);
-    if (statusParam !== "All") linkParams.set("status", statusParam);
-    linkParams.set("page", pageNum.toString());
-    return `/projects?${linkParams.toString()}`;
-  };
+  const totalProperties = totalUpcoming + totalMarket;
+  const showingCount = mappedUpcoming.length + mappedMarket.length;
 
   return (
     <DashboardLayout>
@@ -149,57 +152,40 @@ export default async function ProjectsPage({ searchParams }) {
         />
 
         {/* Results Info */}
-        <div className="mb-4 text-xs text-brand-slate font-bold flex items-center justify-between">
-          <span>
-            Showing {mappedProperties.length} of {totalProjects} total properties
-          </span>
-          {pageParam > 1 && <span>Page {pageParam} of {totalPages}</span>}
+        <div className="mb-6 text-xs text-brand-slate font-bold">
+          Showing {showingCount} of {totalProperties} total properties
         </div>
 
-        {/* Listings Grid */}
-        {mappedProperties.length > 0 ? (
+        {/* Listings Sections */}
+        {totalProperties > 0 ? (
           <div>
-            <PropertyGrid properties={mappedProperties} />
+            {/* Featured Projects Section */}
+            <ExpandableProjectSection
+              title="Featured Projects"
+              initialProjects={mappedUpcoming}
+              totalCount={totalUpcoming}
+              type="upcoming"
+              currentFilters={{
+                city: cityParam,
+                builder: builderParam,
+                propertyType: propertyTypeParam,
+                status: statusParam,
+              }}
+            />
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="mt-12 flex items-center justify-center gap-4 border-t border-brand-border pt-6">
-                {/* Previous Button */}
-                {pageParam > 1 ? (
-                  <Link
-                    id="prev-page-link"
-                    href={buildPageLink(pageParam - 1)}
-                    className="inline-flex items-center gap-1 px-4 py-2.5 bg-brand-bg-card text-brand-blue-dark border border-brand-blue-border rounded-xl text-xs font-bold transition-all hover:bg-brand-blue hover:text-white no-underline shadow-brand"
-                  >
-                    <ChevronLeft size={14} /> Previous
-                  </Link>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-4 py-2.5 bg-brand-bg-alt text-brand-slate-light border border-brand-border rounded-xl text-xs font-bold cursor-not-allowed opacity-60">
-                    <ChevronLeft size={14} /> Previous
-                  </span>
-                )}
-
-                {/* Page Indicator */}
-                <span className="text-xs text-brand-navy font-extrabold px-3 py-1 bg-brand-bg-alt rounded-lg">
-                  Page {pageParam} of {totalPages}
-                </span>
-
-                {/* Next Button */}
-                {pageParam < totalPages ? (
-                  <Link
-                    id="next-page-link"
-                    href={buildPageLink(pageParam + 1)}
-                    className="inline-flex items-center gap-1 px-4 py-2.5 bg-brand-bg-card text-brand-blue-dark border border-brand-blue-border rounded-xl text-xs font-bold transition-all hover:bg-brand-blue hover:text-white no-underline shadow-brand"
-                  >
-                    Next <ChevronRight size={14} />
-                  </Link>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-4 py-2.5 bg-brand-bg-alt text-brand-slate-light border border-brand-border rounded-xl text-xs font-bold cursor-not-allowed opacity-60">
-                    Next <ChevronRight size={14} />
-                  </span>
-                )}
-              </div>
-            )}
+            {/* Other Projects Section */}
+            <ExpandableProjectSection
+              title="Other Projects"
+              initialProjects={mappedMarket}
+              totalCount={totalMarket}
+              type="market"
+              currentFilters={{
+                city: cityParam,
+                builder: builderParam,
+                propertyType: propertyTypeParam,
+                status: statusParam,
+              }}
+            />
           </div>
         ) : (
           <div className="bg-brand-bg-card rounded-3xl border border-brand-border p-12 text-center shadow-brand">
