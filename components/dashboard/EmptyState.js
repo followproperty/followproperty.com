@@ -10,10 +10,10 @@ export default function EmptyState() {
         <SearchX size={32} className="text-brand-slate" />
       </div>
       <h3 className="text-lg font-bold text-brand-navy mb-2 max-w-[500px] leading-snug">
-        No matching projects currently available for your requirements.
+        No matches found.
       </h3>
       <p className="text-xs sm:text-sm text-brand-slate max-w-[460px] leading-relaxed mb-0">
-        We'll continue monitoring newly added projects and notify you when suitable opportunities become available.
+        We will let you know as soon as a suitable match becomes available.
       </p>
     </div>
   );

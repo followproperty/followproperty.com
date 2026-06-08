@@ -34,6 +34,7 @@ export function middleware(request) {
     pathname.startsWith("/watchlist") ||
     pathname.startsWith("/onboarding") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/settings") ||
     isBuilderRoute;
 
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
@@ -106,6 +107,7 @@ export const config = {
     "/dashboard/:path*",
     "/portfolio/:path*",
     "/watchlist/:path*",
+    "/settings/:path*",
     "/onboarding",
     "/admin/:path*",
     "/builder-dashboard/:path*",

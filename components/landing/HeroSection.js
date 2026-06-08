@@ -157,7 +157,7 @@ export default function Hero({ authState }) {
             </button>
           </motion.div>
 
-          <motion.div
+          {/* <motion.div
             variants={blurIn}
             custom={3.5}
             initial="hidden"
@@ -171,7 +171,7 @@ export default function Hero({ authState }) {
             >
               Register as Builder &rarr;
             </Link>
-          </motion.div>
+          </motion.div> */}
 
           <motion.div
             variants={blurIn}

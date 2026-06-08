@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { GitCompare, Check } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
 
 export default function CompareButton({ projectId, projectName }) {
   const [compareList, setCompareList] = useState([]);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const syncList = () => {
@@ -50,6 +52,10 @@ export default function CompareButton({ projectId, projectName }) {
       newList.push({ id: projectId, name: projectName });
       localStorage.setItem("compare_projects", JSON.stringify(newList));
       window.dispatchEvent(new Event("compare-updated"));
+
+      if (newList.length === 1) {
+        showToast("First project added. Go back and add more projects to compare!", "info", "Compare List");
+      }
     }
   };
 

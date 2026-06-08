@@ -45,7 +45,8 @@ export async function POST(req) {
         city: "",
         state: "",
         role: isAllowedAdmin ? "admin" : "user",
-        isOnboarded: false
+        isOnboarded: false,
+        onboardingCompleted: false
       });
       console.log(`[Verify Route] Registered new user ${email} with role: ${user.role}`);
     } else {

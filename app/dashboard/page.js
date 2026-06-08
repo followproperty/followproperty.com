@@ -172,7 +172,10 @@ export default function Dashboard() {
           {/* Card 4: Recent Alerts */}
           <div className="w-full bg-brand-bg-card p-5 rounded-2xl border border-brand-border shadow-brand hover:-translate-y-0.5 hover:border-brand-red-border hover:shadow-[0_8px_30px_rgba(220,38,38,0.08)] transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[130px]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-bold text-brand-slate uppercase tracking-wider">Security Alerts</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-bold text-brand-slate uppercase tracking-wider">Security Alerts</span>
+                <span className="text-[9px] font-bold bg-brand-blue-bg text-brand-blue border border-brand-blue-border px-1.5 py-0.5 rounded-full uppercase tracking-wider">Demo</span>
+              </div>
               <div className="w-8 h-8 rounded-lg bg-brand-red-bg flex items-center justify-center">
                 <BellRing size={16} className="text-brand-red" />
               </div>
@@ -180,7 +183,7 @@ export default function Dashboard() {
             <div>
               <h3 className="text-2xl font-black text-brand-navy m-0">1</h3>
               <div className="mt-2 text-[11px] font-semibold text-brand-red flex items-center gap-1">
-                <span>View Platform Alerts</span> <ArrowRight size={12} />
+                <span>View Platform Alerts (Coming Soon)</span> <ArrowRight size={12} />
               </div>
             </div>
           </div>
@@ -189,8 +192,9 @@ export default function Dashboard() {
         {/* Recent Alerts Section (Uncluttered layout) */}
         <div className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand animate-in slide-in-from-bottom-3 duration-300">
           <div className="flex items-center justify-between mb-5 pb-3 border-b border-brand-border">
-            <h2 className="text-lg font-bold text-brand-navy m-0 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-brand-navy m-0 flex items-center gap-2 flex-wrap">
               <ShieldAlert className="text-brand-red" size={20} /> Critical Platform Alerts
+              <span className="text-[10px] font-bold bg-brand-blue-bg text-brand-blue border border-brand-blue-border px-2 py-0.5 rounded-full uppercase tracking-wider">Demo / Coming Soon</span>
             </h2>
             <span className="text-xs font-semibold text-brand-red bg-brand-red-bg px-2.5 py-1 rounded-full border border-brand-red-border">
               1 Unresolved

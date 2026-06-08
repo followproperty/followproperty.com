@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import FloatingContactButtons from "@/components/ui/FloatingContactButtons";
+import { ToastProvider } from "@/context/ToastContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +28,13 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col overflow-x-hidden max-w-full">{children}</body>
+      <body className="min-h-full flex flex-col overflow-x-hidden max-w-full">
+        <ToastProvider>
+          {children}
+        </ToastProvider>
+        <FloatingContactButtons />
+      </body>
     </html>
   );
 }
+

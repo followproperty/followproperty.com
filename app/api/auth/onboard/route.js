@@ -3,7 +3,7 @@ import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
 
-export async function PATCH() {
+export async function PATCH(req) {
   try {
     const authResult = await verifyAuthRequest({ checkRevoked: true });
     if (!authResult.authenticated) {
@@ -21,9 +21,28 @@ export async function PATCH() {
     const firebaseUid = decodedToken.uid;
     await connectToDatabase();
 
+    let updateData = { isOnboarded: true, onboardingCompleted: true };
+    try {
+      const body = await req.json();
+      if (body && typeof body === "object") {
+        const { firstName, lastName, phoneNumber, age, gender, occupation, annualFamilyIncome, city, state } = body;
+        if (firstName !== undefined) updateData.firstName = firstName;
+        if (lastName !== undefined) updateData.lastName = lastName;
+        if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+        if (age !== undefined) updateData.age = age;
+        if (gender !== undefined) updateData.gender = gender;
+        if (occupation !== undefined) updateData.occupation = occupation;
+        if (annualFamilyIncome !== undefined) updateData.annualFamilyIncome = annualFamilyIncome;
+        if (city !== undefined) updateData.city = city;
+        if (state !== undefined) updateData.state = state;
+      }
+    } catch (e) {
+      console.log("[Onboard API] Parsing req.json failed, updating flags only:", e.message);
+    }
+
     const user = await User.findOneAndUpdate(
       { firebaseUid },
-      { isOnboarded: true },
+      updateData,
       { new: true }
     );
 

@@ -23,8 +23,8 @@ export default function PortfolioCard({ property }) {
   });
 
   return (
-    <Link href={`/property/${property.id}`} className="no-underline text-inherit flex w-full">
-      <div className="card-frame w-full flex flex-col cursor-pointer group">
+    <div className="text-inherit flex w-full">
+      <div className="card-frame w-full flex flex-col group">
         {/* Project Name Header (Premium dark background) */}
         <div className="card-header-gradient">
           {/* Subtle decorative radial light highlight */}
@@ -68,12 +68,15 @@ export default function PortfolioCard({ property }) {
               {gain >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {gain >= 0 ? "+" : ""}{gainPct}%
             </div>
-            <span className="btn-secondary px-3.5 py-1.5 text-[11px] whitespace-nowrap">
-              View Details
-            </span>
+            <button 
+              disabled 
+              className="bg-brand-bg-alt text-brand-slate-light border border-brand-border-mid px-3.5 py-1.5 text-[11px] font-bold rounded-[10px] whitespace-nowrap cursor-not-allowed opacity-75"
+            >
+              Report Coming Soon
+            </button>
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

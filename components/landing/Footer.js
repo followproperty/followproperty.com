@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { 
   Mail, 
@@ -5,12 +7,25 @@ import {
   MapPin
 } from "lucide-react";
 import { landingPageData } from "@/data/mock/landing";
+import { useToast } from "@/context/ToastContext";
 
 export default function Footer() {
   const { footer } = landingPageData;
   if (!footer) return null;
 
   const { logo, description, contact, quickLinks, connect, bottom } = footer;
+
+  const { showToast } = useToast();
+
+  const handleLinkClick = (e, href) => {
+    if (href && href.includes("followproperty.org")) {
+      e.preventDefault();
+      showToast("Redirecting to our parent site...", "info", "Redirecting");
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1200);
+    }
+  };
 
   // Helper to render inline robust SVGs for social media icons
   const getSocialIcon = (platform) => {
@@ -154,6 +169,7 @@ export default function Footer() {
                     <li key={link.label}>
                       <a 
                         href={link.href}
+                        onClick={(e) => handleLinkClick(e, link.href)}
                         className="text-[13.5px] text-brand-slate hover:text-brand-navy hover:translate-x-[2px] transition-all duration-200 inline-block no-underline"
                       >
                         {link.label}
@@ -205,6 +221,7 @@ export default function Footer() {
               <a
                 key={link.label}
                 href={link.href}
+                onClick={(e) => handleLinkClick(e, link.href)}
                 className="hover:text-brand-navy transition-colors duration-200 no-underline"
               >
                 {link.label}

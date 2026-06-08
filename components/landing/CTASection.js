@@ -38,7 +38,7 @@ export default function Nav({ authState }) {
         </div>
 
         <div className="hidden md:flex gap-7 items-center">
-          {["Features", "How It Works", "Pricing"].map((item) => (
+          {/* {["Features", "How It Works", "Pricing"].map((item) => (
             <a
               key={item}
               href="#"
@@ -46,13 +46,13 @@ export default function Nav({ authState }) {
             >
               {item}
             </a>
-          ))}
-          <Link
+          ))} */}
+          {/* <Link
             href="/signup?role=builder"
             className={`text-[13px] no-underline transition-colors duration-300 font-medium ${scrolled ? "text-brand-slate hover:text-brand-navy" : "text-white/80 hover:text-white"}`}
           >
             For Builders
-          </Link>
+          </Link> */}
         </div>
 
         <div className="hidden md:flex gap-2 items-center">
@@ -88,7 +88,7 @@ export default function Nav({ authState }) {
             exit={{ opacity: 0, height: 0 }}
             className="bg-brand-bg border-b border-brand-border px-6 pb-5 md:hidden overflow-hidden"
           >
-            {["Features", "How It Works", "Pricing"].map((item) => (
+            {/* {["Features", "How It Works", "Pricing"].map((item) => (
               <a
                 key={item}
                 href="#"
@@ -96,13 +96,13 @@ export default function Nav({ authState }) {
               >
                 {item}
               </a>
-            ))}
-            <Link
+            ))} */}
+            {/* <Link
               href="/signup?role=builder"
               className="block py-3 text-brand-slate text-sm border-b border-brand-border no-underline font-medium hover:text-brand-navy"
             >
               For Builders
-            </Link>
+            </Link> */}
             {authState?.isAuthenticated ? (
               <Link href="/dashboard" className="w-full mt-4 bg-linear-to-r from-brand-blue-deep to-brand-blue text-white font-bold p-3 rounded-[10px] border border-white/5 cursor-pointer block text-center no-underline shadow-sm hover:shadow-brand-blue/30">
                 Go to Dashboard &rarr;

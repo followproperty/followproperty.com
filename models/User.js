@@ -54,6 +54,29 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    age: {
+      type: Number,
+      default: null,
+    },
+    gender: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    occupation: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    annualFamilyIncome: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

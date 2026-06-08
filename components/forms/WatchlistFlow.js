@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  CheckCircle2,
   ArrowRight,
   X,
 } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
 
 import { T, fadeUp } from '@/constants/theme';
 import { Input, Select, FieldBadge, FlowContext } from './FlowElements';
@@ -69,8 +69,8 @@ export default function WatchlistFlow({ onClose, onSubmitSuccess }) {
   const [budgetInput, setBudgetInput] = useState("");
   const [budgetUnit, setBudgetUnit] = useState("Cr");
   const [submitting, setSubmitting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
   const [error, setError] = useState("");
+  const { showToast } = useToast();
 
   // Sync and calculate absolute Rupees value using shared utility
   useEffect(() => {
@@ -128,12 +128,11 @@ export default function WatchlistFlow({ onClose, onSubmitSuccess }) {
 
       await submitWatchlist(form);
 
-      setShowToast(true);
+      showToast("Your watchlist has been created!", "success", "Watchlist Created");
       setTimeout(() => {
-        setShowToast(false);
         onSubmitSuccess?.("watchlist", form);
         router.push("/watchlist");
-      }, 3000);
+      }, 1500);
 
     } catch (e) {
       console.error(e);
@@ -145,21 +144,6 @@ export default function WatchlistFlow({ onClose, onSubmitSuccess }) {
 
   return (
     <FlowContext.Provider value={{ accent: 'blue' }}>
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, x: 20 }}
-            animate={{ opacity: 1, y: 0, x: 0 }}
-            exit={{ opacity: 0, y: -20, x: 20 }}
-            className="fixed top-6 right-6 bg-white px-5 py-4 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] flex items-center gap-3 z-[9999] border border-brand-border border-l-4 border-l-brand-blue"
-          >
-            <CheckCircle2 size={20} className="text-brand-blue" />
-            <span className="text-sm font-semibold text-brand-navy">
-              Your watchlist has been created!
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <div className="min-h-screen flex flex-col bg-brand-bg-card font-sans antialiased">
         {/* Header */}
         <div className="pt-6 px-7 pb-5 border-b border-brand-border flex items-start justify-between">

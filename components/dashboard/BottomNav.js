@@ -43,9 +43,9 @@ export default function BottomNav() {
   ];
 
   const moreItems = [
-    { id: "alerts", label: "Alerts", icon: BellRing, path: "#" },
-    { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
-    { id: "settings", label: "Settings", icon: Settings, path: "#" },
+    // { id: "alerts", label: "Alerts", icon: BellRing, path: "#" },
+    // { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
+    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
 
   return (

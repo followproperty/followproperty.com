@@ -19,6 +19,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import PropertyGrid from "@/components/dashboard/PropertyGrid";
 import EmptyState from "@/components/dashboard/EmptyState";
 import WatchlistFlow from "@/components/forms/WatchlistFlow";
+import Loading from "@/components/ui/Loading";
 
 export default function WatchlistPage() {
   const [mounted, setMounted] = useState(false);
@@ -37,7 +38,6 @@ export default function WatchlistPage() {
       }
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        setWatchlists(json.data);
         if (json.data.length > 0) {
           const latestWatchlist = json.data[0];
           // Sync to sessionStorage optionally
@@ -45,18 +45,18 @@ export default function WatchlistPage() {
           
           // Fetch live database matching projects from V1 Matching Engine
           const resMatches = await fetch(`/api/watchlist/matches?watchlistId=${latestWatchlist._id}`);
+          let fetchedMatches = [];
           if (resMatches.ok) {
             const jsonMatches = await resMatches.json();
             if (jsonMatches.success && Array.isArray(jsonMatches.data)) {
-              setProperties(jsonMatches.data);
-            } else {
-              setProperties([]);
+              fetchedMatches = jsonMatches.data;
             }
-          } else {
-            setProperties([]);
           }
+          setProperties(fetchedMatches);
+          setWatchlists(json.data);
         } else {
           setProperties([]);
+          setWatchlists([]);
           sessionStorage.removeItem("watchlistFilters");
         }
       } else {
@@ -95,24 +95,11 @@ export default function WatchlistPage() {
     return `₹${parsedNum.toLocaleString("en-IN")}`;
   };
 
-  if (loading && watchlists.length === 0) {
+  if (loading) {
     return (
       <DashboardLayout>
-        <div className="max-w-6xl mx-auto py-8">
-          <div className="flex justify-between items-center mb-8 animate-pulse">
-            <div className="space-y-2">
-              <div className="h-8 w-44 bg-brand-bg-alt rounded-lg" />
-              <div className="h-4 w-72 bg-brand-bg-alt rounded-lg" />
-            </div>
-            <div className="h-10 w-36 bg-brand-bg-alt rounded-xl" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8 animate-pulse">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-24 bg-brand-bg-card rounded-2xl border border-brand-border" />
-            ))}
-          </div>
-          <div className="h-[200px] bg-brand-bg-card rounded-2xl border border-brand-border animate-pulse mb-8" />
-          <div className="h-[350px] bg-brand-bg-card rounded-2xl border border-brand-border animate-pulse" />
+        <div className="max-w-6xl mx-auto py-12">
+          <Loading text="Loading watchlist and matches..." />
         </div>
       </DashboardLayout>
     );

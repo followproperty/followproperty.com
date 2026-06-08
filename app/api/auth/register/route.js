@@ -31,7 +31,8 @@ export async function POST(req) {
         city: city || "",
         state: state || "",
         role: isAllowedAdmin ? "admin" : "user",
-        isOnboarded: false
+        isOnboarded: false,
+        onboardingCompleted: false
       });
       console.log(`[Register Route] Created new user ${email} with role: ${user.role}`);
 

@@ -8,29 +8,28 @@ import Sidebar from "../dashboard/Sidebar";
 import Navbar from "../dashboard/Navbar";
 import BottomNav from "../dashboard/BottomNav";
 import Footer from "../landing/Footer";
+import Loading from "../ui/Loading";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
     if (typeof window !== "undefined") {
-      return sessionStorage.getItem("isAuthenticated") === "true";
-    }
-    return false;
-  });
-  const [loading, setLoading] = useState(() => {
-    if (typeof window !== "undefined") {
-      if (sessionStorage.getItem("isAuthenticated") === "true") {
-        return false;
-      }
+      const isAuth = sessionStorage.getItem("isAuthenticated") === "true";
+      setIsAuthenticated(isAuth);
+      
       const path = window.location.pathname;
       const isPublicRoute = path.startsWith("/projects") || path.startsWith("/builders") || path === "/";
-      if (isPublicRoute) {
-        return false;
+      if (isAuth || isPublicRoute) {
+        setLoading(false);
       }
     }
-    return true;
-  });
-  const router = useRouter();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -78,27 +77,20 @@ export default function DashboardLayout({ children }) {
     return () => unsubscribe();
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-brand-bg">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-4 border-brand-blue/20 border-t-brand-blue animate-spin" />
-          <p className="text-sm font-semibold text-brand-navy/60 animate-pulse">Securing session...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-brand-bg">
-      {isAuthenticated && (
+      {mounted && isAuthenticated && (
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       )}
       <div className="flex-1 flex flex-col min-w-0">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto flex flex-col justify-between">
           <div className="flex-1 p-4 md:p-8 pb-10">
-            {children}
+            {loading ? (
+              <Loading text="Securing session..." />
+            ) : (
+              children
+            )}
           </div>
           <div className="mt-24 md:mt-32 pb-16 md:pb-0">
             <Footer />

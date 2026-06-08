@@ -60,19 +60,19 @@ export const landingPageData = {
       title: "QUICK LINKS",
       columns: [
         [
-          { label: "About Us", href: "#" },
-          { label: "Products", href: "#" },
-          { label: "Team", href: "#" },
-          { label: "Press Release", href: "#" },
-          { label: "Business Owner", href: "#" },
-          { label: "Contact Us", href: "#" }
+          { label: "About Us", href: "https://www.followproperty.org/about" },
+          { label: "Products", href: "https://www.followproperty.org/products" },
+          { label: "Team", href: "https://www.followproperty.org/team" },
+          { label: "Press Release", href: "https://www.followproperty.org/press" },
+          { label: "Business Owner", href: "https://www.followproperty.org/business" },
+          { label: "Contact Us", href: "https://www.followproperty.org/contact" }
         ],
         [
-          { label: "Services", href: "#" },
-          { label: "Current Projects", href: "#" },
-          { label: "FAQ", href: "#" },
-          { label: "Careers", href: "#" },
-          { label: "Locate Us", href: "#" }
+          { label: "Services", href: "https://www.followproperty.org/services" },
+          { label: "Current Projects", href: "https://www.followproperty.org/projects" },
+          { label: "FAQ", href: "https://www.followproperty.org/faq" },
+          { label: "Careers", href: "https://www.followproperty.org/careers" },
+          { label: "Locate Us", href: "https://www.followproperty.org/locate" }
         ]
       ]
     },
@@ -80,8 +80,8 @@ export const landingPageData = {
       title: "CONNECT WITH US",
       description: "Inquire with our advisory desk or follow our research channels.",
       socials: [
-        { name: "Instagram", href: "#", platform: "instagram" },
-        { name: "Facebook", href: "#", platform: "facebook" },
+        { name: "Instagram", href: "https://www.instagram.com/ifollowproperty", platform: "instagram" },
+        { name: "Facebook", href: "https://www.facebook.com/people/Follow-Property/61590301683132/", platform: "facebook" },
         { name: "LinkedIn", href: "#", platform: "linkedin" },
         { name: "YouTube", href: "#", platform: "youtube" },
         { name: "X", href: "#", platform: "x" }
@@ -90,9 +90,9 @@ export const landingPageData = {
     bottom: {
       copyright: "© 2026 FollowProperty. All rights reserved.",
       links: [
-        { label: "Privacy Policy", href: "#" },
-        { label: "Terms of Service", href: "#" },
-        { label: "Security Registry", href: "#" }
+        { label: "Privacy Policy", href: "https://www.followproperty.org/privacy" },
+        { label: "Terms of Service", href: "https://www.followproperty.org/terms" },
+        { label: "Security Registry", href: "https://www.followproperty.org/security" }
       ]
     }
   }

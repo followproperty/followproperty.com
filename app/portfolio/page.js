@@ -169,8 +169,9 @@ export default function PortfolioPage() {
             <h1 className="text-3xl font-extrabold text-brand-navy mb-1.5 tracking-tight">
               My Properties Portfolio
             </h1>
-            <p className="text-xs sm:text-sm text-brand-slate m-0">
-              ⚠️ Prototype valuation based on user-provided purchase data. Real market intelligence integration coming soon.
+            <p className="text-xs sm:text-sm text-brand-slate m-0 flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-brand-blue-bg text-brand-blue border border-brand-blue-border text-[10px] font-bold uppercase tracking-wide">Prototype Simulation</span>
+              <span>Valuations and appreciation calculations are simulated based on static mock metrics. Live market intelligence coming soon.</span>
             </p>
           </div>
           
@@ -190,9 +191,9 @@ export default function PortfolioPage() {
               <IndianRupee size={22} className="text-brand-blue w-4 h-4 sm:w-[22px] sm:h-[22px]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Portfolio Value</p>
+              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Demo Portfolio Value</p>
               <h3 className="text-sm sm:text-xl font-black text-brand-navy m-0 truncate">{formatCurrency(totalValue)}</h3>
-              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">Current estimate value</p>
+              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">Simulated estimate value</p>
             </div>
           </div>
 
@@ -218,12 +219,12 @@ export default function PortfolioPage() {
               )}
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Appreciation</p>
+              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Simulated Appreciation</p>
               <h3 className="text-sm sm:text-xl font-black text-brand-navy m-0 truncate">
                 {netGain >= 0 ? "+" : ""}{formatCurrency(netGain)}
               </h3>
               <p className="text-[8px] sm:text-[10px] font-bold m-0 mt-0.5 truncate text-brand-slate">
-                {netGain >= 0 ? "+" : ""}{gainPct}% total returns
+                {netGain >= 0 ? "+" : ""}{gainPct}% simulated returns
               </p>
             </div>
           </div>
@@ -234,9 +235,9 @@ export default function PortfolioPage() {
               <IndianRupee size={22} className="text-brand-blue w-4 h-4 sm:w-[22px] sm:h-[22px]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Monthly Rent</p>
+              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Simulated Monthly Rent</p>
               <h3 className="text-sm sm:text-xl font-black text-brand-navy m-0 truncate">{formatCurrency(totalMonthlyRent)}</h3>
-              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">{averageYield}% average yield</p>
+              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">{averageYield}% simulated yield</p>
             </div>
           </div>
         </div>
@@ -245,7 +246,7 @@ export default function PortfolioPage() {
         <div className="card-frame p-6 hover:transform-none mb-8">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-brand-border">
             <Activity size={18} className="text-brand-blue" />
-            <h2 className="text-lg font-bold text-brand-navy m-0">Portfolio Market Performance</h2>
+            <h2 className="text-lg font-bold text-brand-navy m-0">Portfolio Market Performance (Simulation)</h2>
           </div>
           
           <div className="mb-4">
@@ -255,7 +256,7 @@ export default function PortfolioPage() {
           <div className="alert-blue items-start p-3 gap-2">
             <TrendingUp size={16} className="text-brand-blue mt-0.5 flex-shrink-0" />
             <p className="text-xs text-brand-blue-dark font-semibold m-0 leading-relaxed">
-              Your real estate portfolio has experienced an overall appreciation of <span className="font-black text-brand-amber">{gainPct}%</span> since purchase. Check back for real market data integrations.
+              Your real estate portfolio has experienced an overall simulated appreciation of <span className="font-black text-brand-amber">{gainPct}%</span> since purchase. Check back for real market data integrations.
             </p>
           </div>
         </div>

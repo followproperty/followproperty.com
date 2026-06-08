@@ -7,7 +7,7 @@ import AuthLayout from "@/components/layout/AuthLayout";
 import { signupWithEmail } from "@/services/auth-service";
 import { Eye, EyeOff } from "lucide-react";
 import { statesList, indiaStatesCities } from "@/constants/indiaStatesCities";
-import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/context/ToastContext";
 
 const toTitleCase = (str) => {
   if (!str) return "";
@@ -20,48 +20,39 @@ const toTitleCase = (str) => {
 };
 
 function SignupForm() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [isManualCity, setIsManualCity] = useState(false);
-  const [customCity, setCustomCity] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isBuilder = searchParams.get("role") === "builder";
-
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => {
-        setToast(null);
-      }, 12000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      showToast("Passwords do not match.", "error", "Action Required");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const finalCity = isManualCity ? customCity : city;
-
       const profileData = {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        phoneNumber: phoneNumber.trim(),
-        city: toTitleCase(finalCity),
-        state: toTitleCase(state),
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+        city: "",
+        state: "",
         isBuilder: isBuilder,
       };
       
@@ -69,16 +60,10 @@ function SignupForm() {
       if (result.success && result.requiresVerification) {
         const msg = result.message || "Verification email sent. Please verify your email before login.";
         setSuccessMessage(msg);
-        setToast({ message: msg, type: "success" });
-        setFirstName("");
-        setLastName("");
-        setPhoneNumber("");
-        setCity("");
-        setCustomCity("");
-        setIsManualCity(false);
-        setState("");
+        showToast(msg, "success", "Verification Sent");
         setEmail("");
         setPassword("");
+        setConfirmPassword("");
       } else if (result.success) {
         router.push("/dashboard");
       } else {
@@ -92,7 +77,7 @@ function SignupForm() {
           message = "Please enter a valid email address.";
         }
         setError(message);
-        setToast({ message, type: "error" });
+        showToast(message, "error", "Action Required");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -128,144 +113,6 @@ function SignupForm() {
         )}
 
         <form onSubmit={handleSignup} className="space-y-4">
-          {/* First & Last Name */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
-                First Name <span className="text-brand-blue">*</span>
-              </label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="John"
-                disabled={loading}
-                required
-                className="form-input text-[14px] disabled:opacity-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
-                Last Name <span className="text-brand-blue">*</span>
-              </label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Doe"
-                disabled={loading}
-                required
-                className="form-input text-[14px] disabled:opacity-50"
-              />
-            </div>
-          </div>
-
-          {/* Phone Number */}
-          <div>
-            <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
-              Phone Number <span className="text-brand-blue">*</span>
-            </label>
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="+91 99999 99999"
-              disabled={loading}
-              required
-              className="form-input text-[14px] disabled:opacity-50"
-            />
-          </div>
-
-          {/* State & City Dropdowns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
-                State <span className="text-brand-blue">*</span>
-              </label>
-              <select
-                value={state}
-                onChange={(e) => {
-                  setState(e.target.value);
-                  setCity(""); // Reset city when state changes
-                }}
-                disabled={loading}
-                required
-                className="form-input text-[14px] disabled:opacity-50 appearance-none bg-no-repeat bg-[right_16px_center] cursor-pointer"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C97A8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-                }}
-              >
-                <option value="">Select State</option>
-                {statesList.map((st) => (
-                  <option key={st} value={st}>
-                    {st}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider">
-                  City <span className="text-brand-blue">*</span>
-                </label>
-                {isManualCity && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsManualCity(false);
-                      setCustomCity("");
-                    }}
-                    className="text-[10px] text-brand-blue font-bold cursor-pointer hover:underline bg-transparent border-none p-0 focus:outline-none"
-                  >
-                    ← Select from List
-                  </button>
-                )}
-              </div>
-              {isManualCity ? (
-                <input
-                  type="text"
-                  value={customCity}
-                  onChange={(e) => setCustomCity(e.target.value)}
-                  placeholder="e.g. Almora"
-                  disabled={loading}
-                  required
-                  className="form-input text-[14px] disabled:opacity-50 animate-in fade-in duration-200"
-                />
-              ) : (
-                <select
-                  value={city}
-                  onChange={(e) => {
-                    if (e.target.value === "manual") {
-                      setIsManualCity(true);
-                      setCity("");
-                    } else {
-                      setCity(e.target.value);
-                    }
-                  }}
-                  disabled={loading || !state}
-                  required
-                  className="form-input text-[14px] disabled:opacity-50 appearance-none bg-no-repeat bg-[right_16px_center] cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C97A8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-                  }}
-                >
-                  <option value="">
-                    {state ? "Select City" : "Select State First"}
-                  </option>
-                  {state &&
-                    indiaStatesCities[state]?.map((ct) => (
-                      <option key={ct} value={ct}>
-                        {ct}
-                      </option>
-                    ))}
-                  {state && (
-                    <option value="manual">City not listed? Enter manually</option>
-                  )}
-                </select>
-              )}
-            </div>
-          </div>
-
           {/* Email */}
           <div>
             <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
@@ -275,7 +122,7 @@ function SignupForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="demo@email.com"
+              placeholder="john.doe@example.com"
               disabled={loading}
               required
               className="form-input text-[14px] disabled:opacity-50"
@@ -313,6 +160,37 @@ function SignupForm() {
             </div>
           </div>
 
+          {/* Confirm Password */}
+          <div>
+            <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
+              Confirm Password <span className="text-brand-blue">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                disabled={loading}
+                required
+                className="form-input pl-4 pr-11 text-[14px] disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={loading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-slate-light hover:text-brand-navy transition-colors focus:outline-none p-1.5 rounded-md disabled:opacity-50 cursor-pointer"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -337,42 +215,6 @@ function SignupForm() {
         </p>
       </div>
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.22 }}
-            className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-32px)] max-w-md p-4.5 rounded-2xl border shadow-xl flex items-start gap-3 bg-white ${
-              toast.type === "success" 
-                ? "border-emerald-100 bg-emerald-50/95 text-emerald-800" 
-                : "border-red-100 bg-red-50/95 text-red-800"
-            }`}
-          >
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${
-              toast.type === "success" ? "bg-emerald-500" : "bg-red-500"
-            }`}>
-              {toast.type === "success" ? "✓" : "!"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-0.5 m-0 text-inherit">
-                {toast.type === "success" ? "Verification Sent" : "Action Required"}
-              </h4>
-              <p className="text-xs leading-relaxed font-medium m-0 opacity-90 break-words">
-                {toast.message}
-              </p>
-            </div>
-            <button 
-              type="button" 
-              onClick={() => setToast(null)}
-              className="bg-transparent border-none text-[11px] font-bold text-inherit hover:opacity-75 cursor-pointer self-start py-0.5 px-1.5 focus:outline-none"
-            >
-              Dismiss
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </AuthLayout>
   );
 }
