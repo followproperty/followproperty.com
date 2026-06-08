@@ -16,6 +16,7 @@ import {
 
 import connectToDatabase from "@/lib/db";
 import MarketProject from "@/models/MarketProject";
+import UpcomingProject from "@/models/UpcomingProject";
 import Watchlist from "@/models/Watchlist";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import LeadButton from "./LeadButton";
@@ -39,6 +40,9 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
   let project = null;
   try {
     project = await MarketProject.findById(id).lean();
+    if (!project) {
+      project = await UpcomingProject.findById(id).lean();
+    }
   } catch (err) {
     console.error("Invalid ObjectId format:", id);
   }

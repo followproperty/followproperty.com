@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import MarketProject from "@/models/MarketProject";
+import UpcomingProject from "@/models/UpcomingProject";
 import { generateProjectReportPDF } from "@/utils/pdf/templates/projectReport";
 
 export async function GET(request, { params }) {
@@ -17,8 +18,12 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Query live MarketProject data
-    const project = await MarketProject.findById(id).lean();
+    // Query live MarketProject data with fallback to UpcomingProject
+    let project = await MarketProject.findById(id).lean();
+    if (!project) {
+      project = await UpcomingProject.findById(id).lean();
+    }
+
     if (!project) {
       return NextResponse.json(
         { success: false, error: "Project not found." },
