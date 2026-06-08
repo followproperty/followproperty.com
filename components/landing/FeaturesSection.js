@@ -185,7 +185,13 @@ export default function CoreFlows({ authState }) {
                   </ul>
 
                   <button
-                    onClick={() => router.push(flow.id === "buy" ? "/watchlist" : "/portfolio")}
+                    onClick={() => {
+                      if (!authState?.isAuthenticated) {
+                        router.push(`/login?redirect=/${flow.id === "buy" ? "watchlist" : "portfolio"}`);
+                      } else {
+                        router.push(flow.id === "buy" ? "/watchlist" : "/portfolio");
+                      }
+                    }}
                     className={`w-full flex items-center justify-center gap-2 p-[13px] rounded-xl border-none cursor-pointer font-semibold text-[14px] text-white transition-all duration-[0.22s] hover:-translate-y-[1px] ${flow.ctaGrad} ${flow.ctaShadow}`}
                   >
                     {flow.id === "buy" ? (

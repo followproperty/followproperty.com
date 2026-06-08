@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import MarketProject from "@/models/MarketProject";
 import { normalizeBuilder } from "@/utils/admin/normalization";
+import UpcomingProject from "@/models/UpcomingProject";
 
 export async function GET() {
   try {
     await connectToDatabase();
 
     // Fetch the 15 most recent projects to support rotating display
-    const dbProjects = await MarketProject.find({})
+    const dbProjects = await UpcomingProject.find({})
       .sort({ createdAt: -1 })
       .limit(15)
       .lean();

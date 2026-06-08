@@ -120,12 +120,13 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
     ];
   }
 
+  const hasAmenities = (project.amenities && project.amenities.length > 0) || (amenitiesList && amenitiesList.length > 0);
+
   // Navigation tab targets mapping
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "configurations", label: "Configurations" },
-    // Commented out to prevent false representation claims since database does not model project amenities yet
-    // ...(amenitiesList.length > 0 ? [{ id: "amenities", label: "Amenities" }] : []),
+    ...(hasAmenities ? [{ id: "amenities", label: "Amenities" }] : []),
     { id: "location", label: "Location" },
     { id: "floorplan", label: "Floor Plan & Master Plan" }
   ];
@@ -269,6 +270,13 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
             <div id="overview" className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand scroll-mt-24">
               <span className="text-[9px] text-brand-blue uppercase font-bold tracking-wider mb-1.5 block">Project Overview</span>
               <h3 className="text-xl font-extrabold text-brand-navy mb-4 m-0">About This Project</h3>
+              
+              {project.tagline && (
+                <blockquote className="border-l-4 border-brand-blue pl-4 py-1 italic text-xs sm:text-sm text-brand-navy-mid font-bold mb-4 bg-brand-blue-bg/40 rounded-r-xl">
+                  "{project.tagline}"
+                </blockquote>
+              )}
+
               <div className="text-xs sm:text-sm text-brand-slate leading-relaxed space-y-3.5 font-semibold">
                 <p>
                   {project.projectName} is a premium {project.propertyType || "residential"} development by the renowned developer {project.builderName}. Centrally located in the vibrant locality of {project.locality}, {project.city}, this project is meticulously designed to offer a refined and modern urban living experience.
@@ -285,7 +293,28 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
               <h3 className="text-xl font-extrabold text-brand-navy mb-5 m-0">Configurations</h3>
               
               <div className="space-y-3.5">
-                {project.bhk && project.bhk.length > 0 ? (
+                {project.configurations && project.configurations.length > 0 ? (
+                  project.configurations.map((configStr, idx) => {
+                    const configArea = project.superArea || (project.minArea && project.maxArea ? `${project.minArea} - ${project.maxArea} sqft` : "TBD");
+                    const basePriceStr = project.minPrice ? formatPriceRange(project.minPrice, project.maxPrice, "₹") : "Contact Builder";
+                    return (
+                      <div key={idx} className="flex items-center justify-between p-4 bg-brand-bg-alt/30 border border-brand-border rounded-2xl hover:border-brand-border-mid transition-all">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-base font-extrabold text-brand-navy">{configStr}</span>
+                          <span className="text-xs text-brand-slate font-medium">{configArea}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm font-extrabold text-brand-navy-deep">{basePriceStr}</span>
+                          <LeadButton 
+                            className="px-4.5 py-2 text-[10px] font-extrabold bg-white hover:bg-brand-bg-alt border border-brand-border-mid text-brand-navy-mid rounded-xl transition-all shadow-xs cursor-pointer uppercase tracking-wider"
+                            text="View"
+                            successText="✓ Details requested."
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : project.bhk && project.bhk.length > 0 ? (
                   project.bhk.map((b, idx) => {
                     const configArea = project.superArea || (project.minArea && project.maxArea ? `${project.minArea} - ${project.maxArea} sqft` : "TBD");
                     const basePriceStr = idx === 0 && project.minPrice ? formatCurrency(project.minPrice, "₹") : project.maxPrice ? formatCurrency(project.maxPrice, "₹") : "Contact Builder";
@@ -327,48 +356,120 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                 )}
               </div>
             </div>
-            {/* 3. Amenities Section - Commented out to prevent false representation claims
-            {amenitiesList.length > 0 && (
-              <div id="amenities" className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand scroll-mt-24">
-                <span className="text-[9px] text-brand-blue uppercase font-bold tracking-wider mb-1.5 block">Lifestyle</span>
-                <h3 className="text-xl font-extrabold text-brand-navy mb-5 m-0">Amenities</h3>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                  {amenitiesList.map((item, idx) => (
-                    <div key={idx} className="p-4 bg-brand-bg-alt/20 border border-brand-border/60 rounded-2xl flex flex-col items-center justify-center text-center gap-2 hover:bg-brand-bg-alt/45 transition-colors">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span className="text-xs font-extrabold text-brand-navy-mid">{item.name}</span>
+
+            {/* Highlights Section */}
+            {project.highlights && project.highlights.length > 0 && (
+              <div className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand">
+                <span className="text-[9px] text-brand-blue uppercase font-bold tracking-wider mb-1.5 block">Highlights</span>
+                <h3 className="text-xl font-extrabold text-brand-navy mb-4 m-0">Key Highlights</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {project.highlights.map((h, i) => (
+                    <div key={i} className="flex items-center gap-2.5 p-3 bg-brand-bg-alt/30 border border-brand-border rounded-xl">
+                      <span className="text-brand-blue font-bold">✓</span>
+                      <span className="text-xs font-bold text-brand-navy-mid">{h}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-            */}
+
+            {/* Specifications Section */}
+            {(project.clubhouseSize || project.openGreenArea || project.carParkingPerUnit || project.liftsPerCore) && (
+              <div className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand">
+                <span className="text-[9px] text-brand-blue uppercase font-bold tracking-wider mb-1.5 block">Specifications</span>
+                <h3 className="text-xl font-extrabold text-brand-navy mb-4 m-0">Project Facts & Specifications</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {project.clubhouseSize && (
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider mb-1">Clubhouse Size</span>
+                      <span className="text-xs sm:text-sm font-extrabold text-brand-navy">{project.clubhouseSize}</span>
+                    </div>
+                  )}
+                  {project.openGreenArea && (
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider mb-1">Green Area</span>
+                      <span className="text-xs sm:text-sm font-extrabold text-brand-navy">{project.openGreenArea}</span>
+                    </div>
+                  )}
+                  {project.carParkingPerUnit !== undefined && project.carParkingPerUnit !== null && (
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider mb-1">Car Parking</span>
+                      <span className="text-xs sm:text-sm font-extrabold text-brand-navy">{project.carParkingPerUnit} per unit</span>
+                    </div>
+                  )}
+                  {project.liftsPerCore !== undefined && project.liftsPerCore !== null && (
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider mb-1">Lifts per core</span>
+                      <span className="text-xs sm:text-sm font-extrabold text-brand-navy">{project.liftsPerCore} Lifts</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Amenities Section */}
+            {hasAmenities && (
+              <div id="amenities" className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand scroll-mt-24">
+                <span className="text-[9px] text-brand-blue uppercase font-bold tracking-wider mb-1.5 block">Lifestyle</span>
+                <h3 className="text-xl font-extrabold text-brand-navy mb-5 m-0">Amenities</h3>
+                
+                {project.amenities && project.amenities.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {project.amenities.map((item, idx) => (
+                      <div key={idx} className="p-3 bg-brand-bg-alt/30 border border-brand-border rounded-xl flex items-center gap-2.5">
+                        <span className="text-base text-brand-blue">✦</span>
+                        <span className="text-xs font-bold text-brand-navy-mid">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                    {amenitiesList.map((item, idx) => (
+                      <div key={idx} className="p-4 bg-brand-bg-alt/20 border border-brand-border/60 rounded-2xl flex flex-col items-center justify-center text-center gap-2 hover:bg-brand-bg-alt/45 transition-colors">
+                        <span className="text-2xl">{item.icon}</span>
+                        <span className="text-xs font-extrabold text-brand-navy-mid">{item.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 4. Location Section */}
             <div id="location" className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand scroll-mt-24">
               <span className="text-[9px] text-brand-blue uppercase font-bold tracking-wider mb-1.5 block">Connectivity</span>
               <h3 className="text-xl font-extrabold text-brand-navy mb-5 m-0">Location Advantage</h3>
               
-              {/* Distance cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                {[
-                  { name: "ATM / Banks", proximity: "Nearby", icon: "🏪" },
-                  { name: "Hospital", proximity: "Short Drive", icon: "🏥" },
-                  { name: "Metro Station", proximity: "Easy Access", icon: "🚇" },
-                  { name: "Railway Station", proximity: "Convenient", icon: "🚉" },
-                  { name: "Airport", proximity: "Accessible", icon: "✈️" },
-                  { name: "Shopping Mall", proximity: "Nearby", icon: "🛍️" },
-                ].map((loc, idx) => (
-                  <div key={idx} className="p-3 bg-brand-bg-card border border-brand-border rounded-2xl shadow-xs flex items-center gap-2.5">
-                    <span className="text-lg flex-shrink-0">{loc.icon}</span>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[11px] font-extrabold text-brand-navy truncate">{loc.name}</span>
-                      <span className="text-[9px] text-brand-slate font-bold">{loc.proximity}</span>
+              {/* Distance cards / Connectivity */}
+              {project.connectivity && project.connectivity.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  {project.connectivity.map((conn, idx) => (
+                    <div key={idx} className="p-3 bg-brand-bg-alt/30 border border-brand-border rounded-2xl flex items-center gap-2.5">
+                      <span className="text-sm text-brand-blue flex-shrink-0">🚗</span>
+                      <span className="text-xs font-bold text-brand-navy-mid">{conn}</span>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                  {[
+                    { name: "ATM / Banks", proximity: "Nearby", icon: "🏪" },
+                    { name: "Hospital", proximity: "Short Drive", icon: "🏥" },
+                    { name: "Metro Station", proximity: "Easy Access", icon: "🚇" },
+                    { name: "Railway Station", proximity: "Convenient", icon: "🚉" },
+                    { name: "Airport", proximity: "Accessible", icon: "✈️" },
+                    { name: "Shopping Mall", proximity: "Nearby", icon: "🛍️" },
+                  ].map((loc, idx) => (
+                    <div key={idx} className="p-3 bg-brand-bg-card border border-brand-border rounded-2xl shadow-xs flex items-center gap-2.5">
+                      <span className="text-lg flex-shrink-0">{loc.icon}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[11px] font-extrabold text-brand-navy truncate">{loc.name}</span>
+                        <span className="text-[9px] text-brand-slate font-bold">{loc.proximity}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Map rendering */}
               <div className="relative rounded-2xl overflow-hidden border border-brand-border shadow-xs mb-4">
@@ -482,6 +583,36 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                   )}
                 </div>
               </div>
+
+              {project.builderStats && (
+                <div className="grid grid-cols-2 gap-2 my-4 pt-3.5 border-t border-brand-border">
+                  {project.builderStats.yearsInBusiness !== undefined && (
+                    <div className="bg-brand-bg-alt/45 p-2.5 rounded-xl text-center border border-brand-border/40">
+                      <span className="text-[10px] text-brand-slate block uppercase tracking-wider font-extrabold mb-0.5">Experience</span>
+                      <span className="text-xs font-black text-brand-navy">{project.builderStats.yearsInBusiness} Yrs</span>
+                    </div>
+                  )}
+                  {project.builderStats.homesDelivered !== undefined && (
+                    <div className="bg-brand-bg-alt/45 p-2.5 rounded-xl text-center border border-brand-border/40">
+                      <span className="text-[10px] text-brand-slate block uppercase tracking-wider font-extrabold mb-0.5">Delivered</span>
+                      <span className="text-xs font-black text-brand-navy">{Number(project.builderStats.homesDelivered).toLocaleString()}+</span>
+                    </div>
+                  )}
+                  {project.builderStats.projectsDelivered !== undefined && (
+                    <div className="bg-brand-bg-alt/45 p-2.5 rounded-xl text-center border border-brand-border/40">
+                      <span className="text-[10px] text-brand-slate block uppercase tracking-wider font-extrabold mb-0.5">Projects</span>
+                      <span className="text-xs font-black text-brand-navy">{project.builderStats.projectsDelivered}+</span>
+                    </div>
+                  )}
+                  {project.builderStats.constructionPartner && (
+                    <div className="bg-brand-bg-alt/45 p-2.5 rounded-xl text-center border border-brand-border/40 col-span-2">
+                      <span className="text-[10px] text-brand-slate block uppercase tracking-wider font-extrabold mb-0.5">Build Partner</span>
+                      <span className="text-xs font-black text-brand-navy truncate block">{project.builderStats.constructionPartner}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <p className="text-[11px] text-brand-slate leading-relaxed m-0 font-semibold">
                 Connect with our advisor for verified developer credentials, RERA details, and latest inventory updates.
               </p>

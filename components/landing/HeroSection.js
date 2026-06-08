@@ -143,14 +143,26 @@ export default function Hero({ authState }) {
             className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-[52px] max-w-sm mx-auto sm:max-w-none px-4 sm:px-0"
           >
             <button
-              onClick={() => router.push("/portfolio")}
+              onClick={() => {
+                if (!authState?.isAuthenticated) {
+                  router.push("/login?redirect=/portfolio");
+                } else {
+                  router.push(authState?.hasPortfolio ? "/dashboard" : "/portfolio");
+                }
+              }}
               className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-linear-to-r from-brand-navy-deep to-brand-navy-mid text-white font-bold text-[14px] sm:text-[15px] py-3.5 px-5 sm:px-7 rounded-[14px] border border-white/5 cursor-pointer shadow-brand-md transition-all duration-250 hover:-translate-y-0.5 hover:border-brand-blue-border hover:shadow-[0_12px_36px_rgba(50,95,236,0.14)]"
             >
               <HomeIcon size={17} /> {authState?.isAuthenticated && authState?.hasPortfolio ? "Open Portfolio" : "Start Tracking Portfolio"} <ArrowRight size={15} />
             </button>
  
             <button
-              onClick={() => router.push("/watchlist")}
+              onClick={() => {
+                if (!authState?.isAuthenticated) {
+                  router.push("/login?redirect=/watchlist");
+                } else {
+                  router.push(authState?.hasWatchlist ? "/dashboard" : "/watchlist");
+                }
+              }}
               className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-brand-bg-card text-brand-navy font-semibold text-[14px] sm:text-[15px] py-3.5 px-5 sm:px-7 rounded-[14px] border border-brand-border cursor-pointer shadow-brand transition-all duration-250 hover:-translate-y-0.5 hover:shadow-brand-md hover:border-brand-blue-border hover:bg-brand-bg-alt"
             >
               <Search size={17} /> {authState?.isAuthenticated && authState?.hasWatchlist ? "Open Watchlist" : "Looking to Buy"}
