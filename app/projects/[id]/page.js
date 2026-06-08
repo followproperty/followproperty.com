@@ -526,15 +526,19 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
             
             {/* Price Card & site visit CTA */}
             <div className="bg-brand-bg-card p-6 rounded-3xl border border-brand-border shadow-brand">
-              <p className="text-[10px] text-brand-slate uppercase font-bold tracking-wider mb-1 m-0">
-                Starting Price
-              </p>
-              <h2 className="text-2xl sm:text-3xl font-black text-brand-navy-deep tracking-tight m-0 mb-1 leading-tight">
-                {formatPriceRange(project.minPrice, project.maxPrice, "₹")}
-              </h2>
-              <p className="text-[11px] text-brand-slate-light m-0 mb-5 leading-normal font-bold">
-                All prices are indicative and subject to builder updates.
-              </p>
+              {project.minPrice > 0 && (
+                <>
+                  <p className="text-[10px] text-brand-slate uppercase font-bold tracking-wider mb-1 m-0">
+                    Starting Price
+                  </p>
+                  <h2 className="text-2xl sm:text-3xl font-black text-brand-navy-deep tracking-tight m-0 mb-1 leading-tight">
+                    {formatPriceRange(project.minPrice, project.maxPrice, "₹")}
+                  </h2>
+                  <p className="text-[11px] text-brand-slate-light m-0 mb-5 leading-normal font-bold">
+                    All prices are indicative and subject to builder updates.
+                  </p>
+                </>
+              )}
               
               <LeadButton 
                 className="w-full py-3.5 rounded-xl border-none font-extrabold text-xs cursor-pointer text-white bg-brand-blue hover:bg-brand-blue/95 transition-all shadow-[0_4px_20px_rgba(50,95,236,0.2)] uppercase tracking-wider" 

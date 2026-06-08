@@ -87,12 +87,16 @@ export default function PropertyCard({ property, watchlistId }) {
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-2">
-          <div>
-            <p className="text-[10px] text-brand-slate-light font-bold uppercase tracking-wider mb-0.5">Price Range</p>
-            <p className="text-[15px] sm:text-[16px] font-black text-brand-navy-deep tracking-tight mb-0">
-              {property.marketPrice || formatPriceRange(property.minPrice, property.maxPrice)}
-            </p>
-          </div>
+          {(property.marketPrice || property.minPrice > 0) ? (
+            <div>
+              <p className="text-[10px] text-brand-slate-light font-bold uppercase tracking-wider mb-0.5">Price Range</p>
+              <p className="text-[15px] sm:text-[16px] font-black text-brand-navy-deep tracking-tight mb-0">
+                {property.marketPrice || formatPriceRange(property.minPrice, property.maxPrice)}
+              </p>
+            </div>
+          ) : (
+            <div />
+          )}
           <Link
             href={`/projects/${property.id}${watchlistId ? `?watchlistId=${watchlistId}` : ""}`}
             className="btn-secondary px-4 py-2 text-[11px] whitespace-nowrap"
