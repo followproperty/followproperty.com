@@ -12,10 +12,8 @@ export default function LeadForm({
 }) {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     phone: "",
-    city: "",
-    requirements: ""
+    city: ""
   });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -40,10 +38,8 @@ export default function LeadForm({
         },
         body: JSON.stringify({
           name: formData.name,
-          email: formData.email,
           phone: formData.phone,
-          city: source !== "brochure_download" ? formData.city : "",
-          requirements: source !== "brochure_download" ? formData.requirements : "",
+          city: formData.city,
           projectId,
           projectName,
           source
@@ -56,7 +52,7 @@ export default function LeadForm({
       }
 
       setSuccess(true);
-      setFormData({ name: "", email: "", phone: "", city: "", requirements: "" });
+      setFormData({ name: "", phone: "", city: "" });
 
       // Call success callback (e.g. to download file)
       if (onSubmitSuccess) {
@@ -115,23 +111,6 @@ export default function LeadForm({
       </div>
 
       <div>
-        <label htmlFor="lead-email" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
-          Email Address
-        </label>
-        <input
-          id="lead-email"
-          name="email"
-          type="email"
-          required
-          placeholder="e.g. john.doe@example.com"
-          value={formData.email}
-          onChange={handleChange}
-          disabled={submitting}
-          className="form-input"
-        />
-      </div>
-
-      <div>
         <label htmlFor="lead-phone" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
           Phone Number
         </label>
@@ -148,42 +127,22 @@ export default function LeadForm({
         />
       </div>
 
-      {source !== "brochure_download" && (
-        <>
-          <div>
-            <label htmlFor="lead-city" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
-              City
-            </label>
-            <input
-              id="lead-city"
-              name="city"
-              type="text"
-              required
-              placeholder="e.g. Gurugram"
-              value={formData.city}
-              onChange={handleChange}
-              disabled={submitting}
-              className="form-input"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="lead-requirements" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
-              Tell your requirements
-            </label>
-            <textarea
-              id="lead-requirements"
-              name="requirements"
-              rows={3}
-              placeholder="e.g. Looking for a 3 BHK apartment in Gurugram under 4 Cr."
-              value={formData.requirements}
-              onChange={handleChange}
-              disabled={submitting}
-              className="form-input resize-none"
-            />
-          </div>
-        </>
-      )}
+      <div>
+        <label htmlFor="lead-city" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
+          City
+        </label>
+        <input
+          id="lead-city"
+          name="city"
+          type="text"
+          required
+          placeholder="e.g. Gurugram"
+          value={formData.city}
+          onChange={handleChange}
+          disabled={submitting}
+          className="form-input"
+        />
+      </div>
 
       <button
         type="submit"

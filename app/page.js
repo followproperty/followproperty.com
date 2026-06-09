@@ -8,7 +8,6 @@ import Hero from "@/components/landing/HeroSection";
 import CoreFlows from "@/components/landing/FeaturesSection";
 import FeaturedProjects from "@/components/landing/FeaturedProjects";
 import Footer from "@/components/landing/Footer";
-import LeadForm from "@/components/lead/LeadForm";
 
 export default function Home() {
   const [authState, setAuthState] = useState({
@@ -79,12 +78,6 @@ export default function Home() {
       <Hero authState={authState} />
       <CoreFlows authState={authState} />
       <FeaturedProjects />
-      
-      {/* Lead Generation Form section */}
-      <div className="max-w-6xl mx-auto px-4 pb-16 pt-4">
-        <LeadForm isEmbed={true} source="landing" />
-      </div>
-
       <Footer />
     </div>
   );

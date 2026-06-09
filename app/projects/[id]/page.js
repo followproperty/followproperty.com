@@ -300,28 +300,21 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                 {project.configurations && project.configurations.length > 0 ? (
                   project.configurations.map((configStr, idx) => {
                     const configArea = project.superArea || (project.minArea && project.maxArea ? `${project.minArea} - ${project.maxArea} sqft` : "TBD");
-                    const basePriceStr = project.minPrice ? formatPriceRange(project.minPrice, project.maxPrice, "₹") : "Contact Builder";
+                    const basePriceStr = project.minPrice ? formatPriceRange(project.minPrice, project.maxPrice, "₹") : "Price on Request";
                     return (
                       <div key={idx} className="flex items-center justify-between p-4 bg-brand-bg-alt/30 border border-brand-border rounded-2xl hover:border-brand-border-mid transition-all">
                         <div className="flex flex-col gap-0.5">
                           <span className="text-base font-extrabold text-brand-navy">{configStr}</span>
                           <span className="text-xs text-brand-slate font-medium">{configArea}</span>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm font-extrabold text-brand-navy-deep">{basePriceStr}</span>
-                          <LeadButton 
-                            className="px-4.5 py-2 text-[10px] font-extrabold bg-white hover:bg-brand-bg-alt border border-brand-border-mid text-brand-navy-mid rounded-xl transition-all shadow-xs cursor-pointer uppercase tracking-wider"
-                            text="View"
-                            successText="✓ Details requested."
-                          />
-                        </div>
+                        <span className="text-sm font-extrabold text-brand-navy-deep">{basePriceStr}</span>
                       </div>
                     );
                   })
                 ) : project.bhk && project.bhk.length > 0 ? (
                   project.bhk.map((b, idx) => {
                     const configArea = project.superArea || (project.minArea && project.maxArea ? `${project.minArea} - ${project.maxArea} sqft` : "TBD");
-                    const basePriceStr = idx === 0 && project.minPrice ? formatCurrency(project.minPrice, "₹") : project.maxPrice ? formatCurrency(project.maxPrice, "₹") : "Contact Builder";
+                    const basePriceStr = idx === 0 && project.minPrice ? formatCurrency(project.minPrice, "₹") : project.maxPrice ? formatCurrency(project.maxPrice, "₹") : "Price on Request";
                     
                     return (
                       <div key={b} className="flex items-center justify-between p-4 bg-brand-bg-alt/30 border border-brand-border rounded-2xl hover:border-brand-border-mid transition-all">
@@ -329,14 +322,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                           <span className="text-base font-extrabold text-brand-navy">{b} BHK</span>
                           <span className="text-xs text-brand-slate font-medium">{configArea}</span>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm font-extrabold text-brand-navy-deep">{basePriceStr}</span>
-                          <LeadButton 
-                            className="px-4.5 py-2 text-[10px] font-extrabold bg-white hover:bg-brand-bg-alt border border-brand-border-mid text-brand-navy-mid rounded-xl transition-all shadow-xs cursor-pointer uppercase tracking-wider"
-                            text="View"
-                            successText="✓ Details requested."
-                          />
-                        </div>
+                        <span className="text-sm font-extrabold text-brand-navy-deep">{basePriceStr}</span>
                       </div>
                     );
                   })
@@ -346,16 +332,9 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                       <span className="text-base font-extrabold text-brand-navy">{project.propertyType || "Residential"} Units</span>
                       <span className="text-xs text-brand-slate font-medium">{project.superArea || "TBD"}</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-extrabold text-brand-navy-deep">
-                        {formatPriceRange(project.minPrice, project.maxPrice, "₹")}
-                      </span>
-                      <LeadButton 
-                        className="px-4.5 py-2 text-[10px] font-extrabold bg-white hover:bg-brand-bg-alt border border-brand-border-mid text-brand-navy-mid rounded-xl transition-all shadow-xs cursor-pointer uppercase tracking-wider"
-                        text="View"
-                        successText="✓ Details requested."
-                      />
-                    </div>
+                    <span className="text-sm font-extrabold text-brand-navy-deep">
+                      {formatPriceRange(project.minPrice, project.maxPrice, "₹")}
+                    </span>
                   </div>
                 )}
               </div>
@@ -515,6 +494,11 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                   className="px-6 py-2.5 bg-brand-purple hover:bg-brand-purple/95 text-white rounded-xl text-xs font-bold transition-all shadow-xs border-none cursor-pointer"
                   text="Request Master Plan Layout"
                   successText="✓ Blueprint layout request queued. We will email you the catalog PDF."
+                  projectId={project._id.toString()}
+                  projectName={project.projectName}
+                  source="master_plan_request"
+                  modalTitle="Request Master Plan"
+                  modalSubtitle="Share your contact details to request layout blueprint"
                 />
               </div>
             </div>
@@ -544,6 +528,11 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                 className="w-full py-3.5 rounded-xl border-none font-extrabold text-xs cursor-pointer text-white bg-brand-blue hover:bg-brand-blue/95 transition-all shadow-[0_4px_20px_rgba(50,95,236,0.2)] uppercase tracking-wider" 
                 text="Book Site Visit →" 
                 successText="✓ Site visit request registered. An advisor will contact you within 48 hours." 
+                projectId={project._id.toString()}
+                projectName={project.projectName}
+                source="book_site_visit"
+                modalTitle="Book a Site Visit"
+                modalSubtitle="Share your contact details to schedule a site visit"
               />
             </div>
 

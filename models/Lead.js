@@ -9,9 +9,10 @@ const LeadSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: false,
       trim: true,
       lowercase: true,
+      default: "",
     },
     phone: {
       type: String,
@@ -31,7 +32,6 @@ const LeadSchema = new mongoose.Schema(
     },
     source: {
       type: String,
-      enum: ["landing", "brochure_download"],
       default: "landing",
       index: true,
     },
