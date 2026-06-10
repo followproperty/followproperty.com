@@ -541,7 +541,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
               <DownloadReportButton 
                 projectId={project._id.toString()} 
                 projectName={project.projectName}
-                projectPdf={project.projectName?.toLowerCase().includes("bptp") ? "/BPTP_DOWNTOWN66__qge9vy (2).pdf" : project.projectPdf}
+                projectPdf={project.projectName?.toLowerCase().includes("bptp") ? "/bptp_downtown_66.pdf" : project.projectPdf}
                 variant="brochure-card"
               />
             )}
