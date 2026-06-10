@@ -68,7 +68,7 @@ export default function Hero({ authState }) {
           muted 
           loop 
           playsInline 
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
+          className="absolute inset-0 w-full h-full object-cover opacity-100"
         >
           <source 
             src="https://res.cloudinary.com/de9urloks/video/upload/q_auto/f_auto/v1781066430/7578546-uhd_3840_2160_30fps_zlwbqa.mp4" 
