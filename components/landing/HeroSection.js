@@ -61,7 +61,7 @@ export default function Hero({ authState }) {
     <div className="bg-brand-bg min-h-screen flex flex-col overflow-hidden relative">
       {/* Background texture */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Subtle Video Background (Royalty-free for commercial use, self-hosted) */}
+        {/* Subtle Video Background (Royalty-free for commercial use, optimized Cloudinary stream) */}
         <video 
           ref={videoRef}
           autoPlay 
@@ -71,7 +71,7 @@ export default function Hero({ authState }) {
           className="absolute inset-0 w-full h-full object-cover opacity-50"
         >
           <source 
-            src="/hero-bg-skyline.mp4" 
+            src="https://res.cloudinary.com/de9urloks/video/upload/q_auto/f_auto/v1781066430/7578546-uhd_3840_2160_30fps_zlwbqa.mp4" 
             type="video/mp4" 
           />
         </video>
