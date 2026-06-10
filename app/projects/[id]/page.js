@@ -537,11 +537,11 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
             </div>
 
             {/* Brochure Card */}
-            {project.projectPdf && (
+            {(project.projectPdf || project.projectName?.toLowerCase().includes("bptp")) && (
               <DownloadReportButton 
                 projectId={project._id.toString()} 
                 projectName={project.projectName}
-                projectPdf={project.projectPdf}
+                projectPdf={project.projectName?.toLowerCase().includes("bptp") ? "/BPTP_DOWNTOWN66__qge9vy (2).pdf" : project.projectPdf}
                 variant="brochure-card"
               />
             )}

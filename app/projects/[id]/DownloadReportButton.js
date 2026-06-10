@@ -33,12 +33,21 @@ export default function DownloadReportButton({ projectId, projectName = "", proj
     if (downloading) return;
     setDownloading(true);
     try {
-      window.open(projectPdf, "_blank");
+      if (projectPdf.startsWith("/")) {
+        const a = document.createElement("a");
+        a.href = projectPdf;
+        a.download = `${projectName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_brochure.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        window.open(projectPdf, "_blank");
+      }
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error("Error opening project PDF:", err);
-      alert("An error occurred while opening the PDF. Please try again.");
+      console.error("Error downloading project PDF:", err);
+      alert("An error occurred while downloading the PDF. Please try again.");
     } finally {
       setDownloading(false);
     }
