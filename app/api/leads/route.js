@@ -26,10 +26,10 @@ export async function POST(req) {
           email = authResult.user.email;
         }
         if (!phone) {
-          phone = authResult.user.phoneNumber;
+          phone = authResult.user.phoneNumber || "N/A";
         }
         if (!city) {
-          city = authResult.user.city;
+          city = authResult.user.city || "";
         }
       }
     } catch (err) {
@@ -41,6 +41,29 @@ export async function POST(req) {
       return NextResponse.json(
         { success: false, error: "Missing required fields: name, phone" },
         { status: 400 }
+      );
+    }
+
+    // Check for duplicate lead to avoid double registration for the same action
+    const duplicateQuery = {
+      projectId: projectId || null,
+      source: source || "landing"
+    };
+
+    if (userId) {
+      duplicateQuery.$or = [
+        { userId },
+        { phone }
+      ];
+    } else {
+      duplicateQuery.phone = phone;
+    }
+
+    const existingLead = await Lead.findOne(duplicateQuery);
+    if (existingLead) {
+      return NextResponse.json(
+        { success: true, data: existingLead, message: "Lead already registered." },
+        { status: 200 }
       );
     }
     
