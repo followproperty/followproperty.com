@@ -153,10 +153,10 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
             {/* Visual Gallery Header */}
             <div className="relative rounded-3xl overflow-hidden border border-brand-border bg-brand-bg-card shadow-brand transition-all duration-300">
               <div className="relative h-[250px] sm:h-[360px] w-full overflow-hidden">
-                {project.image ? (
+                {project.images && project.images.length > 0 ? (
                   <>
                     <img 
-                      src={project.image} 
+                      src={project.images[0]} 
                       alt={project.projectName} 
                       className="w-full h-full object-cover"
                     />
@@ -537,11 +537,14 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
             </div>
 
             {/* Brochure Card */}
-            <DownloadReportButton 
-              projectId={project._id.toString()} 
-              projectName={project.projectName}
-              variant="brochure-card"
-            />
+            {project.projectPdf && (
+              <DownloadReportButton 
+                projectId={project._id.toString()} 
+                projectName={project.projectName}
+                projectPdf={project.projectPdf}
+                variant="brochure-card"
+              />
+            )}
 
             {/* Lead capture form */}
             <div className="bg-brand-bg-card p-5 rounded-3xl border border-brand-border shadow-brand text-left">
@@ -639,13 +642,19 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                 </li>
               </ul>
               
-              {/* Mini placeholder rendering */}
-              <div className="relative h-20 rounded-xl overflow-hidden mt-4 border border-brand-border bg-brand-navy-deep">
-                <div className="absolute inset-0 bg-linear-to-tr from-brand-navy via-brand-navy-mid to-brand-navy-deep opacity-90" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">Walkthrough Video Coming Soon</span>
+              {/* Walkthrough Video Player / Placeholder */}
+              {project.videos && project.videos.length > 0 && project.videos[0] ? (
+                <div className="relative rounded-2xl overflow-hidden mt-4 border border-brand-border bg-black">
+                  <video src={project.videos[0]} controls className="w-full h-[180px] object-cover" />
                 </div>
-              </div>
+              ) : (
+                <div className="relative h-20 rounded-xl overflow-hidden mt-4 border border-brand-border bg-brand-navy-deep">
+                  <div className="absolute inset-0 bg-linear-to-tr from-brand-navy via-brand-navy-mid to-brand-navy-deep opacity-90" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">Walkthrough Video Coming Soon</span>
+                  </div>
+                </div>
+              )}
             </div>
 
 

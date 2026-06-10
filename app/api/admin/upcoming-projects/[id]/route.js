@@ -60,8 +60,14 @@ export async function PUT(req, { params }) {
       monthlyRentRange,
       avgAreaSqft,
       gps,
-      unitSize
+      unitSize,
+      projectPdf,
+      images: rawImages,
+      videos: rawVideos
     } = body;
+
+    const images = Array.isArray(rawImages) ? rawImages : (typeof rawImages === "string" ? rawImages.split(",").map(s => s.trim()).filter(Boolean) : []);
+    const videos = Array.isArray(rawVideos) ? rawVideos : (typeof rawVideos === "string" ? rawVideos.split(",").map(s => s.trim()).filter(Boolean) : []);
 
     // 3. Validation Checklist
     if (
@@ -164,7 +170,10 @@ export async function PUT(req, { params }) {
         monthlyRentRange: monthlyRentRange || "",
         avgAreaSqft: avgAreaSqft || "",
         gps: gps || "",
-        unitSize: unitSize || ""
+        unitSize: unitSize || "",
+        projectPdf: projectPdf || "",
+        images,
+        videos
       },
       { new: true }
     );

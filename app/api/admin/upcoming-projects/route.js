@@ -115,8 +115,14 @@ export async function POST(req) {
       monthlyRentRange,
       avgAreaSqft,
       gps,
-      unitSize
+      unitSize,
+      projectPdf,
+      images: rawImages,
+      videos: rawVideos
     } = body;
+
+    const images = Array.isArray(rawImages) ? rawImages : (typeof rawImages === "string" ? rawImages.split(",").map(s => s.trim()).filter(Boolean) : []);
+    const videos = Array.isArray(rawVideos) ? rawVideos : (typeof rawVideos === "string" ? rawVideos.split(",").map(s => s.trim()).filter(Boolean) : []);
 
     // 3. Validation Checklist
     if (
@@ -232,7 +238,10 @@ export async function POST(req) {
       monthlyRentRange: monthlyRentRange || "",
       avgAreaSqft: avgAreaSqft || "",
       gps: gps || "",
-      unitSize: unitSize || ""
+      unitSize: unitSize || "",
+      projectPdf: projectPdf || "",
+      images,
+      videos
     });
 
     console.log(`[UpcomingProject Ingestion] Successfully created document ${newProject._id} by ${adminUser.email}`);
@@ -276,7 +285,10 @@ export async function POST(req) {
         monthlyRentRange: newProject.monthlyRentRange,
         avgAreaSqft: newProject.avgAreaSqft,
         gps: newProject.gps,
-        unitSize: newProject.unitSize
+        unitSize: newProject.unitSize,
+        projectPdf: newProject.projectPdf,
+        images: newProject.images,
+        videos: newProject.videos
       }
     }, { status: 201 });
 

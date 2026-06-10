@@ -7,7 +7,7 @@ import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import LeadForm from "@/components/lead/LeadForm";
 
-export default function DownloadReportButton({ projectId, projectName = "", variant }) {
+export default function DownloadReportButton({ projectId, projectName = "", projectPdf, variant }) {
   const [downloading, setDownloading] = useState(false);
   const [success, setSuccess] = useState(false);
   
@@ -26,37 +26,19 @@ export default function DownloadReportButton({ projectId, projectName = "", vari
     return () => unsubscribe();
   }, []);
 
+  // Return early if no projectPdf is configured
+  if (!projectPdf) return null;
+
   const triggerPDFDownload = async () => {
     if (downloading) return;
     setDownloading(true);
     try {
-      const response = await fetch(`/api/projects/${projectId}/report`);
-      if (!response.ok) {
-        throw new Error("Failed to generate PDF report");
-      }
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      
-      const contentDisposition = response.headers.get("content-disposition");
-      let filename = `${projectName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_report.pdf` || "project_report.pdf";
-      if (contentDisposition && contentDisposition.includes("filename=")) {
-        filename = contentDisposition.split("filename=")[1].replace(/"/g, "").trim();
-      }
-      
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
+      window.open(projectPdf, "_blank");
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error("Error downloading project report PDF:", err);
-      alert("An error occurred while generating your report. Please try again.");
+      console.error("Error opening project PDF:", err);
+      alert("An error occurred while opening the PDF. Please try again.");
     } finally {
       setDownloading(false);
     }

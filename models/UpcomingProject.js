@@ -117,6 +117,18 @@ const UpcomingProjectSchema = new mongoose.Schema(
             type: String, 
             required: [true, "Creator email is required"],
             trim: true
+        },
+        projectPdf: {
+            type: String,
+            default: ""
+        },
+        images: {
+            type: [String],
+            default: []
+        },
+        videos: {
+            type: [String],
+            default: []
         }
     },
     {

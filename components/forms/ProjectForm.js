@@ -49,6 +49,9 @@ export default function ProjectForm({ mode = "create", initialData = null, onSub
   const [avgAreaSqft, setAvgAreaSqft] = useState("");
   const [gps, setGps] = useState("");
   const [unitSize, setUnitSize] = useState("");
+  const [projectPdf, setProjectPdf] = useState("");
+  const [images, setImages] = useState("");
+  const [videos, setVideos] = useState("");
 
   // --- Preload Initial Data in Edit Mode ---
   useEffect(() => {
@@ -102,6 +105,9 @@ export default function ProjectForm({ mode = "create", initialData = null, onSub
       setAvgAreaSqft(initialData.avgAreaSqft || "");
       setGps(initialData.gps || "");
       setUnitSize(initialData.unitSize || "");
+      setProjectPdf(initialData.projectPdf || "");
+      setImages(Array.isArray(initialData.images) ? initialData.images.join(", ") : "");
+      setVideos(Array.isArray(initialData.videos) ? initialData.videos.join(", ") : "");
 
       setIsLocationEdited(true); // Prevents overriding during edit edits
     }
@@ -248,7 +254,10 @@ export default function ProjectForm({ mode = "create", initialData = null, onSub
       monthlyRentRange,
       avgAreaSqft,
       gps,
-      unitSize
+      unitSize,
+      projectPdf,
+      images: images ? images.split(",").map(s => s.trim()).filter(Boolean) : [],
+      videos: videos ? videos.split(",").map(s => s.trim()).filter(Boolean) : []
     };
 
     try {
@@ -308,6 +317,9 @@ export default function ProjectForm({ mode = "create", initialData = null, onSub
     setAvgAreaSqft("");
     setGps("");
     setUnitSize("");
+    setProjectPdf("");
+    setImages("");
+    setVideos("");
     setIsLocationEdited(false);
     setStep(1);
     setSuccessData(null);
@@ -876,6 +888,36 @@ export default function ProjectForm({ mode = "create", initialData = null, onSub
                       value={unitSize}
                       onChange={(e) => setUnitSize(e.target.value)}
                       placeholder="e.g. 1960 - 3250 Sqft"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-300"
+                    />
+                  </div>
+                  <div className="col-span-1 md:col-span-2">
+                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Project PDF URL</label>
+                    <input
+                      type="text"
+                      value={projectPdf}
+                      onChange={(e) => setProjectPdf(e.target.value)}
+                      placeholder="e.g. https://res.cloudinary.com/...pdf"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Image URLs (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={images}
+                      onChange={(e) => setImages(e.target.value)}
+                      placeholder="e.g. https://res.cloudinary.com/...jpg, https://res.cloudinary.com/...png"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Walkthrough Video URLs (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={videos}
+                      onChange={(e) => setVideos(e.target.value)}
+                      placeholder="e.g. https://res.cloudinary.com/...mp4, https://res.cloudinary.com/...avi"
                       className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-300"
                     />
                   </div>

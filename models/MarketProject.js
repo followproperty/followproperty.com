@@ -45,6 +45,18 @@ const MarketProjectSchema = new mongoose.Schema(
             default: "approved",
             index: true
         },
+        projectPdf: {
+            type: String,
+            default: ""
+        },
+        images: {
+            type: [String],
+            default: []
+        },
+        videos: {
+            type: [String],
+            default: []
+        },
     },
     {
         timestamps: true,
