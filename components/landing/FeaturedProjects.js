@@ -58,14 +58,12 @@ export default function FeaturedProjects() {
       const width = window.innerWidth;
       if (width < 640) {
         setVisibleCount(1);
-      } else if (width < 768) {
+      } else if (width < 960) {
         setVisibleCount(2);
-      } else if (width < 1024) {
+      } else if (width < 1350) {
         setVisibleCount(3);
-      } else if (width < 1280) {
-        setVisibleCount(4);
       } else {
-        setVisibleCount(5);
+        setVisibleCount(4);
       }
     }
     

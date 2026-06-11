@@ -28,6 +28,7 @@ import { formatCurrency, formatPriceRange, formatAreaRange } from "@/utils/pdf/f
 import { normalizeBuilder } from "@/utils/admin/normalization";
 import BackButton from "@/components/ui/BackButton";
 import LeadForm from "@/components/lead/LeadForm";
+import ProjectGallery from "./ProjectGallery";
 
 export default async function ProjectDetailsPage({ params, searchParams }) {
   // Await route params and searchParams for the project details page
@@ -151,70 +152,40 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Visual Gallery Header */}
-            <div className="relative rounded-3xl overflow-hidden border border-brand-border bg-brand-bg-card shadow-brand transition-all duration-300">
-              <div className="relative h-[250px] sm:h-[360px] w-full overflow-hidden">
-                {project.images && project.images.length > 0 ? (
-                  <>
-                    <img 
-                      src={project.images[0]} 
-                      alt={project.projectName} 
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />
-                  </>
-                ) : (
-                  <div className="absolute inset-0 bg-linear-to-br from-brand-navy-deep via-brand-navy to-brand-navy-mid">
-                    {/* Subtle mesh background grid */}
-                    <div 
-                      className="absolute inset-0 opacity-15 pointer-events-none" 
-                      style={{ 
-                        backgroundImage: "radial-gradient(var(--color-brand-border) 1.2px, transparent 1.2px)", 
-                        backgroundSize: "24px 24px" 
-                      }} 
-                    />
-                    <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(circle_at_top_right,rgba(50,95,236,0.18),transparent_70%)] pointer-events-none" />
-                    <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[radial-gradient(circle_at_bottom_left,rgba(81,143,255,0.08),transparent_70%)] pointer-events-none" />
-                    
-                    {/* Building icon in background */}
-                    <Building2 size={130} className="text-white/4 absolute right-10 bottom-4 pointer-events-none" />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/75 via-transparent to-transparent" />
-                  </div>
-                )}
-                
-                {/* Overlay Badges */}
-                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
-                  <span className={`px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider shadow-xs border ${
-                    isReady 
-                      ? "bg-brand-emerald-bg text-brand-emerald border-brand-emerald/20" 
-                      : "bg-brand-amber-bg text-brand-amber border-brand-amber/20"
-                  }`}>
-                    {isReady ? "Ready to Move" : "Under Construction"}
-                  </span>
-                </div>
-
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-1.5 sm:gap-2">
-                  <CompareButton projectId={project._id.toString()} projectName={project.projectName} />
-                  <button className="px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider bg-black/40 backdrop-blur-xs text-white border border-white/20 hover:bg-black/60 active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-sm">
-                    Share
-                  </button>
-                </div>
-
-                {/* Bottom Overlay Text */}
-                <div className="absolute bottom-6 left-6 right-6 text-white z-10">
-                  <div className="flex items-center gap-1.5 bg-black/45 backdrop-blur-xs border border-white/10 px-2.5 py-1 rounded-full mb-3.5 w-fit shadow-xs">
-                    <span className="text-[10px] text-emerald-400 font-extrabold">✓</span>
-                    <span className="text-[10px] text-white/95 font-bold uppercase tracking-wider">Verified {project.propertyType || "Residential"} Project</span>
-                  </div>
-                  <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight m-0 mb-1.5 text-white drop-shadow-sm">
-                    {project.projectName}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-white/90 flex items-center gap-1.5 font-bold m-0 drop-shadow-xs">
-                    <MapPin size={15} className="text-white/70" />
-                    {project.locality ? `${project.locality}, ` : ""}{project.city}{project.state ? `, ${project.state}` : ""}
-                  </p>
-                </div>
+            <ProjectGallery projectName={project.projectName} images={project.images}>
+              {/* Overlay Badges */}
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
+                <span className={`px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider shadow-xs border ${
+                  isReady 
+                    ? "bg-brand-emerald-bg text-brand-emerald border-brand-emerald/20" 
+                    : "bg-brand-amber-bg text-brand-amber border-brand-amber/20"
+                }`}>
+                  {isReady ? "Ready to Move" : "Under Construction"}
+                </span>
               </div>
-            </div>
+
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-1.5 sm:gap-2">
+                <CompareButton projectId={project._id.toString()} projectName={project.projectName} />
+                <button className="px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider bg-black/40 backdrop-blur-xs text-white border border-white/20 hover:bg-black/60 active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-sm">
+                  Share
+                </button>
+              </div>
+
+              {/* Bottom Overlay Text */}
+              <div className="absolute bottom-6 left-6 right-6 text-white z-10">
+                <div className="flex items-center gap-1.5 bg-black/45 backdrop-blur-xs border border-white/10 px-2.5 py-1 rounded-full mb-3.5 w-fit shadow-xs">
+                  <span className="text-[10px] text-emerald-400 font-extrabold">✓</span>
+                  <span className="text-[10px] text-white/95 font-bold uppercase tracking-wider">Verified {project.propertyType || "Residential"} Project</span>
+                </div>
+                <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight m-0 mb-1.5 text-white drop-shadow-sm">
+                  {project.projectName}
+                </h1>
+                <p className="text-xs sm:text-sm text-white/90 flex items-center gap-1.5 font-bold m-0 drop-shadow-xs">
+                  <MapPin size={15} className="text-white/70" />
+                  {project.locality ? `${project.locality}, ` : ""}{project.city}{project.state ? `, ${project.state}` : ""}
+                </p>
+              </div>
+            </ProjectGallery>
 
             {/* Key Metrics Grid underneath image */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -537,11 +508,11 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
             </div>
 
             {/* Brochure Card */}
-            {(project.projectPdf || project.projectName?.toLowerCase().includes("bptp")) && (
+            {project.projectPdf && (
               <DownloadReportButton 
                 projectId={project._id.toString()} 
                 projectName={project.projectName}
-                projectPdf={project.projectName?.toLowerCase().includes("bptp") ? "/bptp_downtown_66.pdf" : project.projectPdf}
+                projectPdf={project.projectPdf}
                 variant="brochure-card"
               />
             )}
