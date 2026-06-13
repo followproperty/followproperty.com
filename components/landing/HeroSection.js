@@ -104,7 +104,7 @@ export default function Hero({ authState }) {
           <motion.div variants={blurIn} custom={0} initial="hidden" animate="visible">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-brand-border bg-brand-bg-card mb-7 shadow-brand">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-emerald inline-block animate-pulse-custom" />
-              <span className="text-[11px] text-brand-navy tracking-[0.1em] uppercase font-bold">
+              <span className="text-[11px] text-brand-navy tracking-[0.14em] uppercase font-bold">
                 Live Market Intelligence
               </span>
             </div>
@@ -123,17 +123,20 @@ export default function Hero({ authState }) {
             </span>
           </motion.h1>
 
-          <motion.p
-            variants={blurIn}
-            custom={2}
-            initial="hidden"
-            animate="visible"
-            className="text-base sm:text-[18px] text-brand-slate leading-relaxed max-w-[540px] mx-auto mt-[22px] mb-[36px] px-2 sm:px-0"
-          >
-            Appreciation tracking, rental yield analytics, builder fraud alerts,
-            and 4-source market intelligence — built for serious Indian property
-            investors.
-          </motion.p>
+          <div className="relative max-w-[540px] mx-auto mt-[22px] mb-[36px] px-4 py-2">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] h-[170%] bg-[radial-gradient(ellipse_at_center,rgba(250,250,248,0.96)_0%,rgba(250,250,248,0.6)_50%,rgba(250,250,248,0.15)_75%,rgba(250,250,248,0)_100%)] pointer-events-none -z-10" />
+            <motion.p
+              variants={blurIn}
+              custom={2}
+              initial="hidden"
+              animate="visible"
+              className="text-base sm:text-[18px] text-brand-navy-mid leading-relaxed relative z-10 m-0"
+            >
+              Appreciation tracking, rental yield analytics, builder fraud alerts,
+              and 4-source market intelligence — built for serious Indian property
+              investors.
+            </motion.p>
+          </div>
 
           <motion.div
             variants={blurIn}

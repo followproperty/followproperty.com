@@ -32,7 +32,7 @@ export default function Nav({ authState }) {
           <span className={`font-bold text-[17px] tracking-[-0.025em] transition-colors duration-300 ${scrolled ? "text-brand-navy" : "text-brand-blue"}`}>
             FollowProperty
           </span>
-          <span className={`hidden sm:inline-block text-[10px] tracking-[0.14em] uppercase ml-1 transition-colors duration-300 ${scrolled ? "text-brand-slate-light" : "text-white/60"}`}>
+          <span className={`hidden sm:inline-block text-[10px] tracking-[0.14em] uppercase ml-1 transition-colors duration-300 ${scrolled ? "text-brand-slate-light" : "text-white/70"}`}>
             Real Assets
           </span>
         </div>
@@ -62,7 +62,7 @@ export default function Nav({ authState }) {
             </Link>
           ) : (
             <>
-              <Link href="/login" className={`text-[13px] font-medium bg-transparent border-none cursor-pointer py-2 px-3.5 no-underline transition-colors duration-300 ${scrolled ? "text-brand-slate hover:text-brand-navy" : "text-white/80 hover:text-white"}`}>
+              <Link href="/login" className={`text-[13px] font-medium bg-transparent border-none cursor-pointer py-2 px-3.5 no-underline transition-colors duration-300 ${scrolled ? "text-brand-slate hover:text-brand-navy" : "text-white/90 hover:text-white"}`}>
                 Login
               </Link>
               <Link href="/signup" className="text-[13px] font-bold text-white bg-linear-to-r from-brand-blue-deep to-brand-blue border border-white/5 cursor-pointer py-[9px] px-5 rounded-[10px] shadow-sm transition-all duration-[0.22s] hover:-translate-y-[1px] hover:shadow-brand-blue/30 no-underline flex items-center">
