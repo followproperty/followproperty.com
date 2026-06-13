@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
-import MarketProject from "@/models/MarketProject";
 import { normalizeBuilder } from "@/utils/admin/normalization";
 import UpcomingProject from "@/models/UpcomingProject";
 
@@ -23,6 +22,8 @@ export async function GET() {
       return {
         id: p._id.toString(),
         _id: p._id.toString(),
+        builderSlug: p.builderSlug || "",
+        projectSlug: p.projectSlug || "",
         title: p.projectName,
         projectName: p.projectName,
         status: isReady ? "Ready to Move" : "Under Construction",

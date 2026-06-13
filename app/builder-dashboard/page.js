@@ -71,6 +71,8 @@ export default async function BuilderDashboardPage() {
 
   const projects = projectsDocs.map((p) => ({
     id: p._id.toString(),
+    builderSlug: p.builderSlug || "",
+    projectSlug: p.projectSlug || "",
     projectName: p.projectName,
     city: p.city || "",
     locality: p.locality || "",

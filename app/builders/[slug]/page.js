@@ -71,6 +71,8 @@ export default async function BuilderProfilePage({ params }) {
     return {
       id: p._id.toString(),
       _id: p._id.toString(),
+      builderSlug: p.builderSlug || "",
+      projectSlug: p.projectSlug || "",
       title: p.projectName,
       projectName: p.projectName,
       status: isReady ? "Ready to Move" : "Under Construction",

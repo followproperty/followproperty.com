@@ -19,33 +19,62 @@ import MarketProject from "@/models/MarketProject";
 import UpcomingProject from "@/models/UpcomingProject";
 import Watchlist from "@/models/Watchlist";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import LeadButton from "./LeadButton";
-import CompareButton from "./CompareButton";
+import LeadButton from "@/app/projects/[id]/LeadButton";
+import CompareButton from "@/app/projects/[id]/CompareButton";
 import CompareBar from "@/components/compare/CompareBar";
-import DownloadReportButton from "./DownloadReportButton";
-import ProjectTabs from "./ProjectTabs";
+import DownloadReportButton from "@/app/projects/[id]/DownloadReportButton";
+import ProjectTabs from "@/app/projects/[id]/ProjectTabs";
 import { formatCurrency, formatPriceRange, formatAreaRange } from "@/utils/pdf/formatter";
 import { normalizeBuilder } from "@/utils/admin/normalization";
 import BackButton from "@/components/ui/BackButton";
 import LeadForm from "@/components/lead/LeadForm";
-import ProjectGallery from "./ProjectGallery";
+import ProjectGallery from "@/app/projects/[id]/ProjectGallery";
+
+// Dynamic metadata generation for SEO compliance
+export async function generateMetadata({ params }) {
+  const { builderSlug, projectSlug } = await params;
+  await connectToDatabase();
+
+  let project = await MarketProject.findOne({ builderSlug, projectSlug }).select("projectName builderName locality city").lean();
+  if (!project) {
+    project = await UpcomingProject.findOne({ builderSlug, projectSlug }).select("projectName builderName locality city").lean();
+  }
+
+  if (!project) {
+    return {
+      title: "Project Not Found | FollowProperty",
+    };
+  }
+
+  const title = `${project.projectName} by ${project.builderName} in ${project.locality ? `${project.locality}, ` : ""}${project.city} | FollowProperty`;
+  const description = `Explore specifications, configurations, prices, and amenities of ${project.projectName} built by ${project.builderName} in ${project.locality ? `${project.locality}, ` : ""}${project.city}.`;
+  const canonicalUrl = `https://followproperty.com/builder/${builderSlug}/projects/${projectSlug}`;
+
+  return {
+    title,
+    description,
+    alternatives: {
+      canonical: canonicalUrl,
+    },
+  };
+}
 
 export default async function ProjectDetailsPage({ params, searchParams }) {
   // Await route params and searchParams for the project details page
-  const { id } = await params;
+  const { builderSlug, projectSlug } = await params;
   const { watchlistId } = await searchParams;
 
   await connectToDatabase();
 
-  // Retrieve project document by ID
+  // Retrieve project document by slugs
   let project = null;
   try {
-    project = await MarketProject.findById(id).lean();
+    project = await MarketProject.findOne({ builderSlug, projectSlug }).lean();
     if (!project) {
-      project = await UpcomingProject.findById(id).lean();
+      project = await UpcomingProject.findOne({ builderSlug, projectSlug }).lean();
     }
   } catch (err) {
-    console.error("Invalid ObjectId format:", id);
+    console.error("Error fetching project by slugs:", err);
   }
 
   if (!project) {
@@ -64,7 +93,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
 
   const isReady = project.status === "Ready to Move" || project.status === "Ready" || project.status === "Completed";
 
-  const builderSlug = project.builderName
+  const resolvedBuilderSlug = project.builderName
     ? normalizeBuilder(project.builderName).toLowerCase().replace(/[^a-z0-9]+/g, "-")
     : "";
 
@@ -136,8 +165,31 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
     { id: "floorplan", label: "Floor Plan & Master Plan" }
   ];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateProject",
+    "name": project.projectName,
+    "description": project.tagline || `Real estate development project ${project.projectName} by ${project.builderName}`,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": project.locality || "",
+      "addressRegion": project.city || "",
+      "addressCountry": "IN"
+    },
+    "offers": project.minPrice ? {
+      "@type": "AggregateOffer",
+      "priceCurrency": "INR",
+      "lowPrice": project.minPrice,
+      "highPrice": project.maxPrice || project.minPrice
+    } : undefined
+  };
+
   return (
     <DashboardLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-6xl mx-auto pb-16 pt-4 px-2 sm:px-4 font-sans antialiased text-brand-navy">
         
         {/* Navigation Control & Breadcrumbs */}
@@ -248,7 +300,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
               
               {project.tagline && (
                 <blockquote className="border-l-4 border-brand-blue pl-4 py-1 italic text-xs sm:text-sm text-brand-navy-mid font-bold mb-4 bg-brand-blue-bg/40 rounded-r-xl">
-                  "{project.tagline}"
+                  &quot;{project.tagline}&quot;
                 </blockquote>
               )}
 
@@ -544,9 +596,9 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                   <h4 className="text-sm sm:text-base font-extrabold text-brand-navy m-0">
                     {project.builderName}
                   </h4>
-                  {builderSlug && (
+                  {resolvedBuilderSlug && (
                     <Link
-                      href={`/builders/${builderSlug}`}
+                      href={`/builders/${resolvedBuilderSlug}`}
                       className="text-xs text-brand-blue font-bold hover:underline"
                     >
                       View Profile

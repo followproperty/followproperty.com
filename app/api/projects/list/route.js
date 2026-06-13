@@ -67,6 +67,8 @@ export async function GET(request) {
       return {
         id: p._id.toString(),
         _id: p._id.toString(),
+        builderSlug: p.builderSlug || "",
+        projectSlug: p.projectSlug || "",
         title: p.projectName,
         projectName: p.projectName,
         status: p.status === "Upcoming" ? "Upcoming" : (isReady ? "Ready to Move" : "Under Construction"),

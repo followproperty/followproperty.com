@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { CITIES } from "../constants/admin/cities.js";
+import { generateBuilderSlug, generateProjectSlug } from "../utils/admin/normalization.js";
 
 const UpcomingProjectSchema = new mongoose.Schema(
     {
@@ -129,6 +130,16 @@ const UpcomingProjectSchema = new mongoose.Schema(
         videos: {
             type: [String],
             default: []
+        },
+        builderSlug: {
+            type: String,
+            trim: true,
+            index: true
+        },
+        projectSlug: {
+            type: String,
+            trim: true,
+            index: true
         }
     },
     {
@@ -141,6 +152,49 @@ UpcomingProjectSchema.index({ projectName: 1, builderName: 1, city: 1 }, { uniqu
 
 // Optimized compound index for matching watchlist preferences
 UpcomingProjectSchema.index({ city: 1, locality: 1, minPrice: 1, maxPrice: 1 });
+
+// Compound unique index for builder slug + project slug (using sparse to allow null/undefined values in migration phase)
+UpcomingProjectSchema.index({ builderSlug: 1, projectSlug: 1 }, { unique: true, sparse: true });
+
+// Pre-save hook to auto-populate builder and project slugs with uniqueness resolution
+UpcomingProjectSchema.pre("save", async function () {
+    if (this.isModified("builderName") || !this.builderSlug) {
+        this.builderSlug = generateBuilderSlug(this.builderName);
+    }
+    
+    if (this.isModified("projectName") || this.isModified("city") || !this.projectSlug) {
+        const baseSlug = generateProjectSlug(this.projectName);
+        let candidateSlug = baseSlug;
+        let attempt = 0;
+        
+        const Model = this.constructor;
+        
+        while (true) {
+            const existing = await Model.findOne({
+                builderSlug: this.builderSlug,
+                projectSlug: candidateSlug,
+                _id: { $ne: this._id }
+            }).lean();
+            
+            if (!existing) {
+                break;
+            }
+            
+            attempt++;
+            if (attempt === 1 && this.city) {
+                const citySlug = this.city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+                candidateSlug = `${baseSlug}-${citySlug}`;
+            } else if (this.city) {
+                const citySlug = this.city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+                candidateSlug = `${baseSlug}-${citySlug}-${attempt}`;
+            } else {
+                candidateSlug = `${baseSlug}-${attempt}`;
+            }
+        }
+        
+        this.projectSlug = candidateSlug;
+    }
+});
 
 export default mongoose.models.UpcomingProject ||
     mongoose.model("UpcomingProject", UpcomingProjectSchema);

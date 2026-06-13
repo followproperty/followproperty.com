@@ -116,3 +116,26 @@ export function formatConfiguration(bhkArray) {
   if (!bhkArray || bhkArray.length === 0) return "";
   return `${bhkArray.join(", ")} BHK`;
 }
+
+/**
+ * Standard slug generator for builders.
+ */
+export function generateBuilderSlug(builderName) {
+  if (!builderName) return "";
+  return normalizeBuilder(builderName)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Standard slug generator for projects.
+ */
+export function generateProjectSlug(projectName) {
+  if (!projectName) return "";
+  return projectName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+

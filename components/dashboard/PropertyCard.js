@@ -116,7 +116,11 @@ export default function PropertyCard({ property, watchlistId }) {
             <div />
           )}
           <Link
-            href={`/projects/${property.id}${watchlistId ? `?watchlistId=${watchlistId}` : ""}`}
+            href={
+              (property.builderSlug && property.projectSlug)
+                ? `/builder/${property.builderSlug}/projects/${property.projectSlug}${watchlistId ? `?watchlistId=${watchlistId}` : ""}`
+                : `/projects/${property.id}${watchlistId ? `?watchlistId=${watchlistId}` : ""}`
+            }
             className="btn-secondary px-3.5 py-1.5 text-[11px] whitespace-nowrap"
           >
             View Details

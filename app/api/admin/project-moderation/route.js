@@ -24,6 +24,8 @@ export async function GET(req) {
     // Map Mongoose _id and dates to plain serializable formats
     const data = projectsDocs.map((p) => ({
       id: p._id.toString(),
+      builderSlug: p.builderSlug || "",
+      projectSlug: p.projectSlug || "",
       projectName: p.projectName,
       builderName: p.builderName || "Unknown",
       city: p.city || "",
