@@ -46,7 +46,8 @@ export async function POST(req) {
         console.log(`[Register Route] Created/verified BuilderApplication (status: draft) for user ${email}`);
       }
 
-      // Send verification email via Resend
+      // Send custom verification email using Resend and Firebase Admin SDK.
+      // Generates a link that allows the user to verify their email through Firebase Authentication.
       try {
         const host = req.headers.get("host") || "followproperty.com";
         const protocol = req.headers.get("x-forwarded-proto") || "http";
