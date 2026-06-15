@@ -2,7 +2,6 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    sendEmailVerification,
 } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
@@ -59,10 +58,7 @@ export const signupWithEmail = async (email, password, profileData = {}) => {
             })
         });
 
-        // 1. Send verification email to the newly registered user
-        await sendEmailVerification(user);
-
-        // 2. Immediately sign out the user so they do not hold an active client session
+        // 1. Immediately sign out the user so they do not hold an active client session
         await signOut(auth);
 
         return {
