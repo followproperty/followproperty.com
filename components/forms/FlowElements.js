@@ -52,7 +52,7 @@ const ACCENT_COLORS = {
   }
 };
 
-export function Input({ label, value, onChange, placeholder, type = 'text', required, hint, prefix, overrideAccent, hideApprox = false }) {
+export function Input({ label, value, onChange, placeholder, type = 'text', required, hint, prefix, overrideAccent, hideApprox = false, min }) {
   const [focused, setFocused] = useState(false);
   const contextAccent = useContext(FlowContext).accent;
   const accent = overrideAccent || contextAccent;
@@ -78,6 +78,7 @@ export function Input({ label, value, onChange, placeholder, type = 'text', requ
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          min={min}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className={`w-full text-sm text-brand-navy bg-brand-bg-card border rounded-[10px] outline-none transition-all duration-200 ${

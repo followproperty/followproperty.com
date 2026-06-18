@@ -16,15 +16,25 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PortfolioCard from "@/components/dashboard/PortfolioCard";
-import PerformanceChart from "@/components/ui/PerformanceChart";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Cell
+} from "recharts";
 import PortfolioFlow from "@/components/forms/PortfolioFlow";
-import { calculateValuation } from "@/utils/calculations/valuation";
 
 export default function PortfolioPage() {
   const [portfolios, setPortfolios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("value-comparison");
+  const [locationGroup, setLocationGroup] = useState("city");
 
   async function fetchPortfolios() {
     try {
@@ -55,18 +65,22 @@ export default function PortfolioPage() {
     fetchPortfolios();
   }, []);
 
-  // Calculate Aggregated Metrics
-  const calculatedPortfolios = portfolios.map(p => {
-    const val = calculateValuation({
-      totalPricePaid: p.totalPricePaid,
-      superArea: p.superArea,
-      projectType: p.projectType
-    });
-    return {
-      ...p,
-      valuation: val
-    };
-  });
+  // Aggregated Metrics directly from backend valuation snapshots
+  const calculatedPortfolios = portfolios.map(p => ({
+    ...p,
+    valuation: p.valuation || {
+      price: Number(p.totalPricePaid) || 0,
+      purchaseRate: Math.round((Number(p.totalPricePaid) || 0) / (Number(p.superArea) || 1)),
+      medianRate: 0,
+      currentMarketValue: 0,
+      gain: 0,
+      gainPct: "0.0",
+      projectRate: null,
+      comparableRate: null,
+      governmentRate: null,
+      lastCalculatedAt: new Date()
+    }
+  }));
 
   const totalInvested = calculatedPortfolios.reduce((sum, p) => sum + p.valuation.price, 0);
   const totalValue = calculatedPortfolios.reduce((sum, p) => sum + p.valuation.currentMarketValue, 0);
@@ -82,48 +96,71 @@ export default function PortfolioPage() {
 
   const averageYield = totalInvested > 0 ? ((totalMonthlyRent * 12 / totalInvested) * 100).toFixed(2) : "0.00";
 
+  const highestAppreciatingAsset = React.useMemo(() => {
+    if (calculatedPortfolios.length === 0) return "N/A";
+    let bestAsset = "None";
+    let maxGain = -Infinity;
+    calculatedPortfolios.forEach(p => {
+      const gain = p.valuation.gain || 0;
+      if (gain > maxGain) {
+        maxGain = gain;
+        bestAsset = p.projectName;
+      }
+    });
+    return maxGain > 0 ? bestAsset : "None";
+  }, [calculatedPortfolios]);
+
+  const bestPerformingCity = React.useMemo(() => {
+    if (calculatedPortfolios.length === 0) return "N/A";
+    const cityGains = {};
+    calculatedPortfolios.forEach(p => {
+      const city = p.city || "Unknown";
+      const gain = p.valuation.gain || 0;
+      cityGains[city] = (cityGains[city] || 0) + gain;
+    });
+    let bestCity = "None";
+    let maxGain = -Infinity;
+    Object.entries(cityGains).forEach(([city, gain]) => {
+      if (gain > maxGain) {
+        maxGain = gain;
+        bestCity = city;
+      }
+    });
+    return maxGain > 0 ? bestCity : "None";
+  }, [calculatedPortfolios]);
+
   const formatCurrency = (num) => {
     if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
     if (num >= 100000) return `₹${(num / 100000).toFixed(2)} L`;
     return `₹${num.toLocaleString("en-IN")}`;
   };
 
-  // Aggregated Performance Timeline
-  const getAggregatedTimelineData = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
-    
-    return years.map(year => {
-      let totalVal = 0;
-      calculatedPortfolios.forEach(p => {
-        const val = p.valuation;
-        let purchaseYear = null;
-        if (p.possessionStatus === "Already Taken" && p.possessionDateYear) {
-          purchaseYear = parseInt(p.possessionDateYear);
-        } else if (p.expectedPossessionYear) {
-          purchaseYear = parseInt(p.expectedPossessionYear);
-        }
-        if (!purchaseYear || isNaN(purchaseYear)) purchaseYear = currentYear - 4;
-        
-        if (year < purchaseYear) {
-          totalVal += val.price;
-        } else {
-          const yearsDiff = currentYear - purchaseYear;
-          if (yearsDiff <= 0) {
-            totalVal += val.currentMarketValue;
-          } else {
-            const ratio = Math.min(1, (year - purchaseYear) / yearsDiff);
-            totalVal += val.price + (val.currentMarketValue - val.price) * ratio;
-          }
-        }
-      });
-      return {
-        year: year.toString(),
-        value: Math.round(totalVal),
-        label: year === currentYear ? "Current Valuation" : "Estimated Value"
-      };
+  // Location grouping aggregator
+  const locationAllocationData = React.useMemo(() => {
+    const groupings = {};
+    calculatedPortfolios.forEach(p => {
+      const key = locationGroup === "city" 
+        ? (p.city || "Other").trim() 
+        : (p.state || p.city || "Other").trim();
+      
+      if (!groupings[key]) {
+        groupings[key] = {
+          name: key,
+          invested: 0,
+          currentValue: 0,
+          gain: 0
+        };
+      }
+      groupings[key].invested += p.valuation.price;
+      groupings[key].currentValue += p.valuation.currentMarketValue;
+      groupings[key].gain += p.valuation.gain;
     });
-  };
+
+    return Object.values(groupings).map(group => ({
+      ...group,
+      gainPct: group.invested > 0 ? ((group.gain / group.invested) * 100).toFixed(1) : "0.0"
+    }));
+  }, [calculatedPortfolios, locationGroup]);
 
   // If loading and has no local state yet
   if (loading && portfolios.length === 0) {
@@ -170,8 +207,7 @@ export default function PortfolioPage() {
               My Properties Portfolio
             </h1>
             <p className="text-xs sm:text-sm text-brand-slate m-0 flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-brand-blue-bg text-brand-blue border border-brand-blue-border text-[10px] font-bold uppercase tracking-wide">Prototype Simulation</span>
-              <span>Valuations and appreciation calculations are simulated based on static mock metrics. Live market intelligence coming soon.</span>
+              <span>Real-time valuations and appreciation calculated based on circle rates and comparable transactions.</span>
             </p>
           </div>
           
@@ -191,9 +227,9 @@ export default function PortfolioPage() {
               <IndianRupee size={22} className="text-brand-blue w-4 h-4 sm:w-[22px] sm:h-[22px]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Demo Portfolio Value</p>
+              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Portfolio Value</p>
               <h3 className="text-sm sm:text-xl font-black text-brand-navy m-0 truncate">{formatCurrency(totalValue)}</h3>
-              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">Simulated estimate value</p>
+              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">Estimated market value</p>
             </div>
           </div>
 
@@ -219,12 +255,12 @@ export default function PortfolioPage() {
               )}
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Simulated Appreciation</p>
+              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Capital Appreciation</p>
               <h3 className="text-sm sm:text-xl font-black text-brand-navy m-0 truncate">
                 {netGain >= 0 ? "+" : ""}{formatCurrency(netGain)}
               </h3>
               <p className="text-[8px] sm:text-[10px] font-bold m-0 mt-0.5 truncate text-brand-slate">
-                {netGain >= 0 ? "+" : ""}{gainPct}% simulated returns
+                {netGain >= 0 ? "+" : ""}{gainPct}% returns
               </p>
             </div>
           </div>
@@ -235,29 +271,321 @@ export default function PortfolioPage() {
               <IndianRupee size={22} className="text-brand-blue w-4 h-4 sm:w-[22px] sm:h-[22px]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Simulated Monthly Rent</p>
+              <p className="text-[9px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-0.5 m-0 truncate">Monthly Rent</p>
               <h3 className="text-sm sm:text-xl font-black text-brand-navy m-0 truncate">{formatCurrency(totalMonthlyRent)}</h3>
-              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">{averageYield}% simulated yield</p>
+              <p className="text-[8px] sm:text-[10px] text-brand-slate font-bold m-0 mt-0.5 truncate">{averageYield}% yield</p>
             </div>
+          </div>
+        </div>
+
+        {/* Compact Investor Insights Strip */}
+        <div className="bg-brand-bg-card border border-brand-border rounded-2xl p-4 mb-8 shadow-brand flex flex-col md:flex-row md:items-center justify-between gap-y-3 gap-x-6">
+          <div className="flex flex-1 items-center justify-between md:justify-start gap-4">
+            <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider">Highest Appreciating Asset</span>
+            <span className="text-xs font-black text-brand-navy truncate max-w-[180px]">{highestAppreciatingAsset}</span>
+          </div>
+          <div className="hidden md:block w-[1px] h-5 bg-brand-border" />
+          <div className="flex flex-1 items-center justify-between md:justify-start gap-4">
+            <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider">Best Performing City</span>
+            <span className="text-xs font-black text-brand-navy">{bestPerformingCity}</span>
+          </div>
+          <div className="hidden md:block w-[1px] h-5 bg-brand-border" />
+          <div className="flex flex-1 items-center justify-between md:justify-start gap-4">
+            <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider">Properties Tracked</span>
+            <span className="text-xs font-black text-brand-navy">{calculatedPortfolios.length}</span>
+          </div>
+          <div className="hidden md:block w-[1px] h-5 bg-brand-border" />
+          <div className="flex flex-1 items-center justify-between md:justify-start gap-4">
+            <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider">Total Monthly Rent</span>
+            <span className="text-xs font-black text-brand-navy">{formatCurrency(totalMonthlyRent)}</span>
           </div>
         </div>
 
         {/* Aggregated Performance Section */}
         <div className="card-frame p-6 hover:transform-none mb-8">
-          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-brand-border">
-            <Activity size={18} className="text-brand-blue" />
-            <h2 className="text-lg font-bold text-brand-navy m-0">Portfolio Market Performance (Simulation)</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-3 border-b border-brand-border">
+            <div className="flex items-center gap-2">
+              <Activity size={18} className="text-brand-blue" />
+              <h2 className="text-lg font-bold text-brand-navy m-0">Portfolio Investor Insights</h2>
+            </div>
+            
+            {/* Tabs Selector */}
+            <div className="flex gap-1 bg-brand-bg-alt p-1 rounded-xl border border-brand-border-mid">
+              {[
+                { id: "value-comparison", label: "Portfolio Value" },
+                { id: "gain-contribution", label: "Gain Contribution" },
+                { id: "location-allocation", label: "Geographic Allocation" }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? "bg-brand-blue text-white shadow-sm"
+                      : "text-brand-slate hover:text-brand-navy bg-transparent border-none"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
           
-          <div className="mb-4">
-            <PerformanceChart data={getAggregatedTimelineData()} />
-          </div>
- 
-          <div className="alert-blue items-start p-3 gap-2">
-            <TrendingUp size={16} className="text-brand-blue mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-brand-blue-dark font-semibold m-0 leading-relaxed">
-              Your real estate portfolio has experienced an overall simulated appreciation of <span className="font-black text-brand-amber">{gainPct}%</span> since purchase. Check back for real market data integrations.
-            </p>
+          <div className="mb-6">
+            {activeTab === "value-comparison" && (
+              <div>
+                <p className="text-xs text-brand-slate mb-4 leading-relaxed">
+                  Comparing your total capital invested vs. the current estimated market value for each tracked asset.
+                </p>
+                <div className="w-full h-[260px] sm:h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={calculatedPortfolios.map(p => ({
+                        name: p.projectName,
+                        Invested: p.valuation.price,
+                        CurrentValue: p.valuation.currentMarketValue
+                      }))}
+                      margin={{ top: 10, right: 10, left: 12, bottom: 5 }}
+                    >
+                      <XAxis
+                        dataKey="name"
+                        stroke="#94A3B8"
+                        fontSize={11}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={6}
+                        className="font-semibold text-brand-slate"
+                      />
+                      <YAxis
+                        stroke="#94A3B8"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(val) => {
+                          if (val >= 10000000) return `${(val / 10000000).toFixed(1)} Cr`;
+                          if (val >= 100000) return `${(val / 100000).toFixed(0)} L`;
+                          return val.toLocaleString();
+                        }}
+                        dx={-4}
+                        className="font-semibold text-brand-slate"
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(148, 163, 184, 0.05)' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-brand-navy p-3 rounded-xl border border-brand-border shadow-brand text-xs text-white">
+                                <p className="font-bold mb-1.5 m-0">{payload[0].payload.name}</p>
+                                <div className="space-y-1">
+                                  <p className="m-0 text-[#94a3b8]">
+                                    Capital Invested: <span className="font-extrabold text-white">{formatCurrency(payload[0].value)}</span>
+                                  </p>
+                                  <p className="m-0 text-[#94a3b8]">
+                                    Current Value: <span className="font-extrabold text-brand-blue-light">{formatCurrency(payload[1].value)}</span>
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Legend 
+                        verticalAlign="top" 
+                        height={36} 
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }}
+                      />
+                      <Bar dataKey="Invested" fill="#94A3B8" radius={[4, 4, 0, 0]} name="Capital Invested" />
+                      <Bar dataKey="CurrentValue" fill="#325FEC" radius={[4, 4, 0, 0]} name="Current Value" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "gain-contribution" && (
+              <div>
+                <p className="text-xs text-brand-slate mb-4 leading-relaxed">
+                  Absolute capital gain contribution from each asset. Positive values represent net profit.
+                </p>
+                <div className="w-full h-[260px] sm:h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={calculatedPortfolios.map(p => ({
+                        name: p.projectName,
+                        Gain: p.valuation.gain
+                      }))}
+                      margin={{ top: 10, right: 10, left: 12, bottom: 5 }}
+                    >
+                      <XAxis
+                        dataKey="name"
+                        stroke="#94A3B8"
+                        fontSize={11}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={6}
+                        className="font-semibold text-brand-slate"
+                      />
+                      <YAxis
+                        stroke="#94A3B8"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(val) => {
+                          if (val >= 10000000) return `${(val / 10000000).toFixed(1)} Cr`;
+                          if (val >= 100000) return `${(val / 100000).toFixed(0)} L`;
+                          return val.toLocaleString();
+                        }}
+                        dx={-4}
+                        className="font-semibold text-brand-slate"
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(148, 163, 184, 0.05)' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const val = payload[0].value;
+                            return (
+                              <div className="bg-brand-navy p-3 rounded-xl border border-brand-border shadow-brand text-xs text-white">
+                                <p className="font-bold mb-1 m-0">{payload[0].payload.name}</p>
+                                <p className={`font-extrabold m-0 ${val >= 0 ? "text-brand-emerald" : "text-brand-red"}`}>
+                                  Net Appreciation: {val >= 0 ? "+" : ""}{formatCurrency(val)}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar dataKey="Gain" radius={[4, 4, 0, 0]}>
+                        {calculatedPortfolios.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.valuation.gain >= 0 ? "#10B981" : "#EF4444"} 
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "location-allocation" && (
+              <div>
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <p className="text-xs text-brand-slate leading-relaxed m-0">
+                    Breakdown of capital invested and current value grouped by location.
+                  </p>
+                  
+                  {/* City/State Toggle */}
+                  <div className="flex gap-1 bg-brand-bg-alt p-0.5 rounded-lg border border-brand-border">
+                    {[
+                      { id: "city", label: "By City" },
+                      { id: "state", label: "By State" }
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setLocationGroup(opt.id)}
+                        className={`px-2.5 py-1 rounded-md font-bold text-[10px] cursor-pointer transition-all duration-200 ${
+                          locationGroup === opt.id
+                            ? "bg-brand-navy text-white shadow-xs"
+                            : "text-brand-slate hover:text-brand-navy bg-transparent border-none"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  <div className="w-full h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={locationAllocationData}
+                        margin={{ top: 10, right: 10, left: 12, bottom: 5 }}
+                      >
+                        <XAxis
+                          dataKey="name"
+                          stroke="#94A3B8"
+                          fontSize={11}
+                          tickLine={false}
+                          axisLine={false}
+                          dy={6}
+                          className="font-semibold text-brand-slate"
+                        />
+                        <YAxis
+                          stroke="#94A3B8"
+                          fontSize={10}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(val) => {
+                            if (val >= 10000000) return `${(val / 10000000).toFixed(1)} Cr`;
+                            if (val >= 100000) return `${(val / 100000).toFixed(0)} L`;
+                            return val.toLocaleString();
+                          }}
+                          dx={-4}
+                          className="font-semibold text-brand-slate"
+                        />
+                        <Tooltip
+                          cursor={{ fill: 'rgba(148, 163, 184, 0.05)' }}
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-brand-navy p-3 rounded-xl border border-brand-border shadow-brand text-xs text-white">
+                                  <p className="font-bold mb-1.5 m-0">{data.name}</p>
+                                  <div className="space-y-1">
+                                    <p className="m-0 text-[#94a3b8]">
+                                      Invested: <span className="font-extrabold text-white">{formatCurrency(data.invested)}</span>
+                                    </p>
+                                    <p className="m-0 text-[#94a3b8]">
+                                      Current Value: <span className="font-extrabold text-brand-blue-light">{formatCurrency(data.currentValue)}</span>
+                                    </p>
+                                    <p className="m-0 text-brand-emerald">
+                                      Returns: +{data.gainPct}%
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar dataKey="currentValue" fill="#3B82F6" name="Current Value" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Location lists detail */}
+                  <div className="space-y-3">
+                    <span className="text-[10px] text-brand-slate font-bold uppercase tracking-wider">Allocation Ledger</span>
+                    <div className="divide-y divide-brand-border max-h-[200px] overflow-y-auto pr-2">
+                      {locationAllocationData.map(group => (
+                        <div key={group.name} className="py-2.5 flex justify-between items-center">
+                          <div>
+                            <span className="text-xs font-extrabold text-brand-navy-deep">{group.name}</span>
+                            <div className="text-[10px] text-brand-slate mt-0.5 font-medium">
+                              Invested: {formatCurrency(group.invested)}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-black text-brand-navy">{formatCurrency(group.currentValue)}</span>
+                            <div className="text-[10px] text-brand-emerald mt-0.5 font-bold">
+                              +{group.gainPct}% returns
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

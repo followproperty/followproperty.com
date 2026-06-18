@@ -31,6 +31,11 @@ const PortfolioSchema = new mongoose.Schema(
       required: [true, 'Project type is required'],
       trim: true,
     },
+    state: {
+      type: String,
+      required: [true, 'State is required'],
+      trim: true,
+    },
     city: {
       type: String,
       required: [true, 'City is required'],
@@ -58,6 +63,7 @@ const PortfolioSchema = new mongoose.Schema(
     },
     parkingSpots: {
       type: Number,
+      min: [0, 'Parking spots cannot be negative'],
     },
     possessionStatus: {
       type: String,
@@ -120,6 +126,36 @@ const PortfolioSchema = new mongoose.Schema(
     alertState: {
       type: Boolean,
       default: false,
+    },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'MarketProject',
+      default: null,
+    },
+    builderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Builder',
+      default: null,
+    },
+    projectSlug: {
+      type: String,
+      default: null,
+    },
+    builderSlug: {
+      type: String,
+      default: null,
+    },
+    valuation: {
+      price: { type: Number, default: 0 },
+      purchaseRate: { type: Number, default: 0 },
+      medianRate: { type: Number, default: 0 },
+      currentMarketValue: { type: Number, default: 0 },
+      gain: { type: Number, default: 0 },
+      gainPct: { type: String, default: "0.0" },
+      projectRate: { type: Number, default: null },
+      comparableRate: { type: Number, default: null },
+      governmentRate: { type: Number, default: null },
+      lastCalculatedAt: { type: Date, default: Date.now }
     },
   },
   {

@@ -131,7 +131,7 @@ export function generateValuationPDF(property, valuation) {
   doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.text("REAL ASSET PORTFOLIO & DEMO VALUATION REPORT", 20, 24);
+  doc.text("REAL ASSET PORTFOLIO & PROPERTY VALUATION REPORT", 20, 24);
 
   // Generation Date
   const reportDate = new Date().toLocaleDateString("en-IN", {
@@ -191,7 +191,7 @@ export function generateValuationPDF(property, valuation) {
   doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.text("DEMO VALUATION ESTIMATE", 18, 75);
+  doc.text("CURRENT VALUATION ESTIMATE", 18, 75);
 
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.setFont("helvetica", "bold");
@@ -217,13 +217,6 @@ export function generateValuationPDF(property, valuation) {
   doc.setFontSize(11);
   const netGainStr = `${valuation.gain >= 0 ? "Estimated Gain: +" : "Estimated Loss: "}${formatCurrency(valuation.gain)}`;
   doc.text(netGainStr, 192, 86, { align: "right" });
-
-  // Prototype warning note in the gap
-  doc.setTextColor(warningColor[0], warningColor[1], warningColor[2]);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  const pdfWarningNote = "Prototype valuation based on user-provided purchase data. Real market intelligence integration coming soon.";
-  doc.text(doc.splitTextToSize(pdfWarningNote, 186), 12, 104);
 
   // --- SECTION 3: DETAILED SPECIFICATIONS GRID ---
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -348,7 +341,7 @@ export function generateValuationPDF(property, valuation) {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
   doc.setFontSize(7.5);
-  const disclaimerText = "Disclaimer: Prototype valuation based on user-provided purchase data. Real market intelligence integration coming soon. This valuation report is dynamically compiled for informational tracking purposes and does not constitute a formal financial appraisal. Generated on FollowProperty platform.";
+  const disclaimerText = "Disclaimer: This valuation report is dynamically compiled for informational tracking purposes based on circle rates and comparable transactions, and does not constitute a formal financial appraisal. Generated on FollowProperty platform.";
   doc.text(doc.splitTextToSize(disclaimerText, 180), 15, 280);
 
   // Branded Signature with Logo

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { verifyAuthRequest } from '@/lib/auth-guards';
 import connectToDatabase from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
+import { calculateValuationForProperty } from '@/services/valuation/valuationEngine';
+import { saveValuationSnapshot } from '@/services/valuation/saveValuationSnapshot';
 
 export async function POST(request) {
   try {
@@ -23,12 +25,41 @@ export async function POST(request) {
     await connectToDatabase();
     const body = await request.json();
     
+    // Validate parkingSpots is not negative
+    if (body.parkingSpots !== undefined && body.parkingSpots !== null && body.parkingSpots !== "") {
+      const parking = Number(body.parkingSpots);
+      if (isNaN(parking) || parking < 0) {
+        return NextResponse.json(
+          { success: false, error: "Parking spots count cannot be negative." },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Calculate live circle rate/comparable valuation
+    let valuation = {};
+    try {
+      valuation = await calculateValuationForProperty(body);
+    } catch (valErr) {
+      console.error("[Portfolio API] Valuation calculation failed:", valErr);
+    }
+    
     // Automatically inject user ownership mapping parameters
     const portfolio = await Portfolio.create({
       ...body,
       userId: user._id,
-      firebaseUid
+      firebaseUid,
+      valuation
     });
+
+    // Save valuation snapshot to history
+    try {
+      if (portfolio.valuation) {
+        await saveValuationSnapshot(portfolio, portfolio.valuation);
+      }
+    } catch (histErr) {
+      console.error("[Portfolio API] Failed to save valuation history snapshot:", histErr);
+    }
     
     return NextResponse.json(
       { success: true, message: 'Portfolio property added successfully', data: portfolio },

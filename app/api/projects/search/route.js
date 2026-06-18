@@ -39,7 +39,7 @@ export async function GET(request) {
 
     // Fetch only essential fields to minimize browser memory footprint
     const projects = await MarketProject.find(query)
-      .select("projectName builderName location propertyType city state")
+      .select("projectName builderName location propertyType city state builderId projectSlug builderSlug")
       .limit(10)
       .lean();
 

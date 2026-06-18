@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import { MapPin, TrendingUp, TrendingDown } from "lucide-react";
-import { calculateValuation } from "@/utils/calculations/valuation";
 
 export default function PortfolioCard({ property }) {
   const formatCurrency = (num) => {
@@ -10,17 +9,13 @@ export default function PortfolioCard({ property }) {
     return `₹${num.toLocaleString()}`;
   };
 
-  const {
-    price,
-    currentMarketValue,
-    gain,
-    gainPct,
-    image
-  } = calculateValuation({
-    totalPricePaid: property.totalPricePaid,
-    superArea: property.superArea,
-    projectType: property.projectType
-  });
+  const valuation = property.valuation || {
+    price: Number(property.totalPricePaid) || 0,
+    currentMarketValue: 0,
+    gain: 0,
+    gainPct: "0.0"
+  };
+  const { price, currentMarketValue, gain, gainPct } = valuation;
 
   return (
     <div className="text-inherit flex w-full">
@@ -56,7 +51,7 @@ export default function PortfolioCard({ property }) {
               <p className="text-[15px] font-black text-brand-navy-deep tracking-tight">{formatCurrency(price)}</p>
             </div>
             <div>
-              <p className="text-[10px] text-brand-slate-light font-bold uppercase tracking-wider mb-0.5">Demo Valuation</p>
+              <p className="text-[10px] text-brand-slate-light font-bold uppercase tracking-wider mb-0.5">Estimated Value</p>
               <p className="text-[15px] font-black text-brand-navy-deep tracking-tight">{formatCurrency(currentMarketValue)}</p>
             </div>
           </div>
@@ -68,12 +63,12 @@ export default function PortfolioCard({ property }) {
               {gain >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {gain >= 0 ? "+" : ""}{gainPct}%
             </div>
-            <button 
-              disabled 
-              className="bg-brand-bg-alt text-brand-slate-light border border-brand-border-mid px-3.5 py-1.5 text-[11px] font-bold rounded-[10px] whitespace-nowrap cursor-not-allowed opacity-75"
+            <Link 
+              href={`/property/${property.id || property._id}`}
+              className="bg-brand-blue-bg hover:bg-brand-blue/15 text-brand-blue border border-brand-blue-border px-3.5 py-1.5 text-[11px] font-bold rounded-[10px] whitespace-nowrap transition-all duration-200 no-underline cursor-pointer"
             >
-              Report Coming Soon
-            </button>
+              View Details
+            </Link>
           </div>
         </div>
       </div>

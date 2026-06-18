@@ -85,6 +85,11 @@ export default function PortfolioFlow({ onClose, onSubmitSuccess }) {
     alertProject: true,
     alertCity: true,
     alertState: false,
+    // Linkage fields
+    projectId: null,
+    builderId: null,
+    projectSlug: null,
+    builderSlug: null,
   });
   const [totalPricePaidInput, setTotalPricePaidInput] = useState("");
 const [totalPricePaidUnit, setTotalPricePaidUnit] = useState("Cr");
@@ -108,12 +113,20 @@ const [section, setSection] = useState(1); // 1 = form part A, 2 = form part B
         updated.city = "";
         updated.projectName = "";
         updated.builderName = "";
+        updated.projectId = null;
+        updated.builderId = null;
+        updated.projectSlug = null;
+        updated.builderSlug = null;
         setSearchQuery("");
       }
       // Clear project selection if city or propertyType changes
       if (key === "city" || key === "projectType") {
         updated.projectName = "";
         updated.builderName = "";
+        updated.projectId = null;
+        updated.builderId = null;
+        updated.projectSlug = null;
+        updated.builderSlug = null;
         setSearchQuery("");
       }
       return updated;
@@ -200,6 +213,10 @@ const [section, setSection] = useState(1); // 1 = form part A, 2 = form part B
       ...f,
       projectName: project.projectName,
       builderName: project.builderName,
+      projectId: project._id || null,
+      builderId: project.builderId || null,
+      projectSlug: project.projectSlug || null,
+      builderSlug: project.builderSlug || null,
       isManualProject: false,
     }));
     setSearchQuery("");
@@ -410,7 +427,15 @@ const [section, setSection] = useState(1); // 1 = form part A, 2 = form part B
                         <button
                           type="button"
                           onClick={() => {
-                            setForm((f) => ({ ...f, projectName: "", builderName: "" }));
+                            setForm((f) => ({
+                              ...f,
+                              projectName: "",
+                              builderName: "",
+                              projectId: null,
+                              builderId: null,
+                              projectSlug: null,
+                              builderSlug: null,
+                            }));
                             setSearchQuery("");
                           }}
                           className="px-3 py-1.5 rounded-lg border border-brand-amber-border text-brand-amber bg-brand-bg-card text-xs font-bold cursor-pointer transition-colors duration-200 hover:bg-brand-amber-bg/45"
@@ -428,7 +453,16 @@ const [section, setSection] = useState(1); // 1 = form part A, 2 = form part B
                           <button
                             type="button"
                             onClick={() => {
-                              setForm((f) => ({ ...f, isManualProject: false, projectName: "", builderName: "" }));
+                              setForm((f) => ({
+                                ...f,
+                                isManualProject: false,
+                                projectName: "",
+                                builderName: "",
+                                projectId: null,
+                                builderId: null,
+                                projectSlug: null,
+                                builderSlug: null,
+                              }));
                               setSearchQuery("");
                             }}
                             className="bg-transparent border-none text-[10px] text-brand-amber font-bold cursor-pointer hover:underline"
@@ -515,7 +549,14 @@ const [section, setSection] = useState(1); // 1 = form part A, 2 = form part B
                                   </div>
                                 ))}
                                 <div 
-                                  onClick={() => setForm((f) => ({ ...f, isManualProject: true }))}
+                                  onClick={() => setForm((f) => ({
+                                    ...f,
+                                    isManualProject: true,
+                                    projectId: null,
+                                    builderId: null,
+                                    projectSlug: null,
+                                    builderSlug: null,
+                                  }))}
                                   className="p-3.5 bg-brand-bg-alt hover:bg-brand-amber-bg/20 cursor-pointer text-left text-xs font-bold text-brand-amber flex items-center gap-2 border-t border-brand-border"
                                 >
                                   <PlusCircle size={14} />
@@ -527,7 +568,14 @@ const [section, setSection] = useState(1); // 1 = form part A, 2 = form part B
                                 <p className="text-xs text-brand-slate font-medium">No matching projects found.</p>
                                 <button
                                   type="button"
-                                  onClick={() => setForm((f) => ({ ...f, isManualProject: true }))}
+                                  onClick={() => setForm((f) => ({
+                                    ...f,
+                                    isManualProject: true,
+                                    projectId: null,
+                                    builderId: null,
+                                    projectSlug: null,
+                                    builderSlug: null,
+                                  }))}
                                   className="mt-2 text-xs font-bold text-brand-amber bg-brand-amber-bg hover:bg-brand-amber-bg/80 border border-brand-amber-border px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
                                 >
                                   Project not listed? Enter manually
@@ -689,9 +737,13 @@ const [section, setSection] = useState(1); // 1 = form part A, 2 = form part B
                     <Input
                       label=""
                       value={form.parkingSpots}
-                      onChange={set("parkingSpots")}
+                      onChange={(val) => {
+                        if (val !== "" && Number(val) < 0) return;
+                        set("parkingSpots")(val);
+                      }}
                       placeholder="e.g. 2"
                       type="number"
+                      min={0}
                     />
                   </div>
                 </div>

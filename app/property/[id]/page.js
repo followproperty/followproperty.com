@@ -5,9 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import BackButton from "@/components/ui/BackButton";
-import { calculateValuation } from "@/utils/calculations/valuation";
 import { generateValuationPDF } from "@/utils/pdf/generator";
-import PerformanceChart from "@/components/ui/PerformanceChart";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell
+} from "recharts";
 import { 
   Building2, 
   MapPin, 
@@ -144,63 +151,57 @@ export default function PropertyDetailsPage({ params }) {
     );
   }
 
-  // Calculate market valuations using same logic as PortfolioCard
-  const valuation = calculateValuation({
-    totalPricePaid: property.totalPricePaid,
-    superArea: property.superArea,
-    projectType: property.projectType
-  });
+  // Read valuation snapshot directly from backend
+  const valuation = property.valuation || {
+    price: Number(property.totalPricePaid) || 0,
+    purchaseRate: Math.round((Number(property.totalPricePaid) || 0) / (Number(property.superArea) || 1)),
+    medianRate: 0,
+    currentMarketValue: 0,
+    gain: 0,
+    gainPct: "0.0",
+    projectRate: null,
+    comparableRate: null,
+    governmentRate: null,
+    lastCalculatedAt: new Date()
+  };
+
+  const formatDate = (dateVal) => {
+    if (!dateVal) return "N/A";
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return "N/A";
+    const day = String(d.getDate()).padStart(2, '0');
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
+  };
+
+  const hasGov = !!valuation.governmentRate;
+  const hasComp = !!valuation.comparableRate;
+  const hasProj = !!valuation.projectRate;
+
+  const activeSourcesCount = [
+    valuation.governmentRate,
+    valuation.comparableRate,
+    valuation.projectRate
+  ].filter(rate => rate !== null && rate !== undefined && rate > 0).length;
+
+  let confidenceLevel = "LOW";
+  let confidenceColor = "text-brand-red bg-brand-red-bg border-brand-red-border/40";
+  if (hasGov && hasComp && hasProj) {
+    confidenceLevel = "HIGH";
+    confidenceColor = "text-brand-emerald bg-brand-emerald-bg border-brand-emerald-border/40";
+  } else if (hasGov && hasComp && !hasProj) {
+    confidenceLevel = "MEDIUM";
+    confidenceColor = "text-brand-amber bg-brand-amber-bg border-brand-amber-border/40";
+  }
 
   const handleDownloadPDF = () => {
     if (!property || !valuation) return;
     generateValuationPDF(property, valuation);
   };
 
-  const getTimelineData = () => {
-    if (!property || !valuation) return [];
 
-    const currentYear = new Date().getFullYear();
-    let startYear = null;
-
-    if (property.possessionStatus === "Already Taken" && property.possessionDateYear) {
-      startYear = parseInt(property.possessionDateYear);
-    } else if (property.expectedPossessionYear) {
-      startYear = parseInt(property.expectedPossessionYear);
-    }
-
-    if (!startYear || startYear > currentYear || startYear < 2000) {
-      startYear = currentYear - 4;
-    }
-
-    const yearsDiff = currentYear - startYear;
-
-    let points = [];
-    if (yearsDiff > 0) {
-      for (let i = 0; i <= yearsDiff; i++) {
-        const year = startYear + i;
-        const ratio = i / yearsDiff;
-        const value = Math.round(valuation.price + (valuation.currentMarketValue - valuation.price) * ratio);
-        points.push({
-          year: year.toString(),
-          value: value,
-          label: i === 0 ? "Purchase" : i === yearsDiff ? "Current Demo" : "Intermediate"
-        });
-      }
-    } else {
-      const pointLabels = ["Purchase", "Interval 1", "Interval 2", "Interval 3", "Current Demo"];
-      for (let i = 0; i < 5; i++) {
-        const ratio = i / 4;
-        const value = Math.round(valuation.price + (valuation.currentMarketValue - valuation.price) * ratio);
-        points.push({
-          year: pointLabels[i],
-          value: value,
-          label: i === 0 ? "Purchase" : i === 4 ? "Current Demo" : "Intermediate"
-        });
-      }
-    }
-
-    return points;
-  };
 
   return (
     <DashboardLayout>
@@ -292,7 +293,7 @@ export default function PropertyDetailsPage({ params }) {
             <p className="text-[10px] text-brand-slate-light mt-1 m-0">₹{(valuation.price / property.superArea).toFixed(0)}/sq.ft cost rate</p>
           </div>
           <div className="card-frame p-4 sm:p-5 hover:transform-none">
-            <p className="text-[10px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-1 m-0">Demo Valuation Estimate</p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-brand-slate uppercase tracking-wider mb-1 m-0">Valuation Estimate</p>
             <p className="text-lg sm:text-2xl font-extrabold text-brand-navy m-0">{formatCurrency(valuation.currentMarketValue)}</p>
             <p className="text-[10px] text-brand-blue mt-1 m-0 font-medium">₹{valuation.medianRate}/sq.ft current estimate</p>
           </div>
@@ -319,60 +320,217 @@ export default function PropertyDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* Prototype Warning Banner */}
-        <div className="alert-blue items-center mb-8">
-          <Info size={18} className="text-brand-blue flex-shrink-0" />
-          <p className="text-xs text-brand-blue-dark font-semibold m-0 leading-relaxed">
-            Prototype valuation based on user-provided purchase data. Real market intelligence integration coming soon.
-          </p>
-        </div>
-
         {/* Detailed Grid: Specs + Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Details Panel */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Property Performance */}
+            {/* Valuation Breakdown */}
             <div className="card-frame p-5 sm:p-6 hover:transform-none">
               <h3 className="text-[15px] sm:text-[16px] font-extrabold text-brand-navy mb-4 border-b border-brand-border pb-3 flex items-center gap-2 m-0">
-                <Activity size={18} className="text-brand-blue" /> Property Performance
+                <Activity size={18} className="text-brand-blue" /> Valuation Breakdown
               </h3>
               
-              {/* Performance Chart Component */}
-              <div className="mb-6">
-                <PerformanceChart data={getTimelineData()} />
-              </div>
-
-              {/* Grid Statistics Below Chart */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-brand-bg-card shadow-xs border border-brand-border mb-4">
-                <div>
-                  <p className="text-[10px] text-brand-slate uppercase font-bold m-0 mb-1 tracking-wider">Purchase Price</p>
-                  <p className="text-sm sm:text-base font-extrabold text-brand-navy m-0">{formatCurrency(valuation.price)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-brand-slate uppercase font-bold m-0 mb-1 tracking-wider">Demo Valuation</p>
-                  <p className="text-sm sm:text-base font-extrabold text-brand-navy m-0">{formatCurrency(valuation.currentMarketValue)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-brand-slate uppercase font-bold m-0 mb-1 tracking-wider">Estimated Gain</p>
-                  <p className={`text-sm sm:text-base font-extrabold m-0 ${valuation.gain >= 0 ? "text-brand-emerald" : "text-brand-red"}`}>
-                    {valuation.gain >= 0 ? "+" : ""}{formatCurrency(valuation.gain)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-brand-slate uppercase font-bold m-0 mb-1 tracking-wider">Appreciation %</p>
-                  <p className={`text-sm sm:text-base font-extrabold m-0 ${valuation.gain >= 0 ? "text-brand-emerald" : "text-brand-red"}`}>
-                    {valuation.gain >= 0 ? "+" : ""}{valuation.gainPct}%
-                  </p>
-                </div>
-              </div>
-
-              {/* Small Insight Box */}
-              <div className="p-3.5 rounded-xl bg-brand-blue-bg border border-brand-blue-border flex items-start gap-2.5">
-                <TrendingUp size={16} className="text-brand-blue mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-brand-blue-dark font-semibold m-0 leading-relaxed">
-                  Your property has an estimated appreciation of <span className="font-extrabold">{valuation.gainPct}%</span> since acquisition.
+              {/* Valuation Breakdown Chart */}
+              <div className="mb-8">
+                <p className="text-xs text-brand-slate mb-4 leading-relaxed">
+                  Visual comparison of the current market valuation inputs vs. the final computed valuation.
                 </p>
+                <div className="w-full h-[240px] sm:h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        {
+                          name: "Circle Rate Value",
+                          value: valuation.governmentRate ? Math.round(valuation.governmentRate * property.superArea) : 0,
+                          color: "#3B82F6",
+                        },
+                        {
+                          name: "Local Market Value",
+                          value: valuation.comparableRate ? Math.round(valuation.comparableRate * property.superArea) : 0,
+                          color: "#10B981",
+                        },
+                        {
+                          name: "Builder Listing Value",
+                          value: valuation.projectRate ? Math.round(valuation.projectRate * property.superArea) : 0,
+                          color: "#F59E0B",
+                        },
+                        {
+                          name: "FollowProperty Estimate",
+                          value: valuation.currentMarketValue || 0,
+                          color: "#6366F1",
+                        }
+                      ].filter(item => item.value > 0)}
+                      margin={{ top: 10, right: 10, left: 12, bottom: 5 }}
+                    >
+                      <XAxis
+                        dataKey="name"
+                        stroke="#94A3B8"
+                        fontSize={11}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={6}
+                        className="font-semibold text-brand-slate"
+                      />
+                      <YAxis
+                        stroke="#94A3B8"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(val) => {
+                          if (val >= 10000000) return `${(val / 10000000).toFixed(1)} Cr`;
+                          if (val >= 100000) return `${(val / 100000).toFixed(0)} L`;
+                          return val.toLocaleString();
+                        }}
+                        dx={-4}
+                        className="font-semibold text-brand-slate"
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(148, 163, 184, 0.05)' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-brand-navy p-3 rounded-xl border border-brand-border shadow-brand text-xs text-white">
+                                <p className="font-bold mb-1 m-0">{data.name} Value</p>
+                                <p className="font-extrabold m-0 text-brand-blue-light">
+                                  {formatCurrency(data.value)}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40}>
+                        {[
+                          { name: "Circle Rate Value", color: "#3B82F6" },
+                          { name: "Local Market Value", color: "#10B981" },
+                          { name: "Builder Listing Value", color: "#F59E0B" },
+                          { name: "FollowProperty Estimate", color: "#6366F1" }
+                        ].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Valuation Methodology Section */}
+              <div className="border-t border-brand-border pt-5 mt-5">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                  <h4 className="text-[13px] font-bold text-brand-navy-deep uppercase tracking-wider flex items-center gap-1.5 m-0">
+                    <span className="w-1.5 h-1.5 bg-brand-blue rounded-full" /> Valuation Methodology
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-[11px] font-extrabold text-brand-navy bg-brand-bg-alt border border-brand-border-mid px-2.5 py-1 rounded-lg">
+                      Sources Used: {activeSourcesCount}/3
+                    </span>
+                    <span className="text-[11px] text-brand-slate font-medium">
+                      Last Updated: {formatDate(valuation.lastCalculatedAt)}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  {/* Government Rate */}
+                  <div className="p-3.5 rounded-xl border border-brand-border bg-brand-bg-alt/50 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider">Government Circle Rate</span>
+                      <p className="text-base font-extrabold text-brand-navy mt-1 mb-0">
+                        {valuation.governmentRate ? `₹${Math.round(valuation.governmentRate).toLocaleString()}/sqft` : "Not Available"}
+                      </p>
+                    </div>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider mt-2.5 inline-block w-fit px-2 py-0.5 rounded ${
+                      valuation.governmentRate ? "bg-brand-blue-bg text-brand-blue border border-brand-blue-border/40" : "bg-brand-border-mid text-brand-slate-light"
+                    }`}>
+                      {valuation.governmentRate ? "Available" : "Not Available"}
+                    </span>
+                  </div>
+
+                  {/* Comparable Rate */}
+                  <div className="p-3.5 rounded-xl border border-brand-border bg-brand-bg-alt/50 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider">Comparable Market Rate</span>
+                      <p className="text-base font-extrabold text-brand-navy mt-1 mb-0">
+                        {valuation.comparableRate ? `₹${Math.round(valuation.comparableRate).toLocaleString()}/sqft` : "Not Available"}
+                      </p>
+                    </div>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider mt-2.5 inline-block w-fit px-2 py-0.5 rounded ${
+                      valuation.comparableRate ? "bg-brand-emerald-bg text-brand-emerald border border-brand-emerald-border/40" : "bg-brand-border-mid text-brand-slate-light"
+                    }`}>
+                      {valuation.comparableRate ? "Available" : "Not Available"}
+                    </span>
+                  </div>
+
+                  {/* Project Rate */}
+                  <div className="p-3.5 rounded-xl border border-brand-border bg-brand-bg-alt/50 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] text-brand-slate uppercase font-bold tracking-wider">Project Listing Rate</span>
+                      <p className="text-base font-extrabold text-brand-navy mt-1 mb-0">
+                        {valuation.projectRate ? `₹${Math.round(valuation.projectRate).toLocaleString()}/sqft` : "Not Available"}
+                      </p>
+                    </div>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider mt-2.5 inline-block w-fit px-2 py-0.5 rounded ${
+                      valuation.projectRate ? "bg-brand-amber-bg text-brand-amber border border-brand-amber-border/40" : "bg-brand-border-mid text-brand-slate-light"
+                    }`}>
+                      {valuation.projectRate ? "Available" : "Not Available"}
+                    </span>
+                  </div>
+
+                  {/* Final Rate Used */}
+                  <div className="p-3.5 rounded-xl border border-brand-blue-border bg-brand-blue-bg/25 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] text-brand-blue-dark uppercase font-bold tracking-wider">Current Valuation Rate</span>
+                      <p className="text-base font-extrabold text-brand-navy mt-1 mb-0">
+                        ₹{Math.round(valuation.medianRate).toLocaleString()}/sqft
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider mt-2.5 inline-block w-fit px-2 py-0.5 rounded bg-brand-blue text-white border-none">
+                      Final Rate Used
+                    </span>
+                  </div>
+                </div>
+
+                {/* Final valuation active sources description */}
+                <div className="p-3.5 rounded-xl bg-brand-blue-bg border border-brand-blue-border flex items-start gap-2.5 mb-4">
+                  <Info size={16} className="text-brand-blue mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-brand-blue-dark font-semibold leading-relaxed">
+                    <p className="m-0 font-extrabold">
+                      Final Valuation based on {activeSourcesCount} active sources
+                    </p>
+                    <p className="m-0 mt-1 font-medium text-brand-slate">
+                      Our live engine aggregates and compares available regulatory rates, catalog list prices, and localized transaction summaries to generate a transparent, market-aligned valuation.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Valuation Confidence Block */}
+                <div className="border-t border-brand-border pt-4">
+                  <h4 className="text-[12px] font-bold text-brand-navy-deep uppercase tracking-wider mb-2.5 flex items-center gap-1.5 m-0">
+                    <span className="w-1.5 h-1.5 bg-brand-blue rounded-full" /> Valuation Confidence
+                  </h4>
+                  <div className="p-3.5 rounded-xl border border-brand-border bg-brand-bg-alt/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-brand-slate">Confidence Level:</span>
+                      <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${confidenceColor}`}>
+                        {confidenceLevel}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                      <span className={`text-xs font-bold flex items-center gap-1 ${hasGov ? "text-brand-emerald" : "text-brand-red"}`}>
+                        {hasGov ? "✓" : "✗"} Circle Rate {hasGov ? "Available" : "Unavailable"}
+                      </span>
+                      <span className={`text-xs font-bold flex items-center gap-1 ${hasComp ? "text-brand-emerald" : "text-brand-red"}`}>
+                        {hasComp ? "✓" : "✗"} Local Market Data {hasComp ? "Available" : "Unavailable"}
+                      </span>
+                      <span className={`text-xs font-bold flex items-center gap-1 ${hasProj ? "text-brand-emerald" : "text-brand-red"}`}>
+                        {hasProj ? "✓" : "✗"} Builder Listing Data {hasProj ? "Available" : "Unavailable"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
