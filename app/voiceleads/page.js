@@ -467,6 +467,15 @@ export default function VoiceLeadsPage() {
           )}
 
         </div>
+
+        {step === "success" && (
+          <Link
+            href="/"
+            className="mt-6 text-base font-bold text-[#325fec] hover:underline no-underline flex items-center gap-1.5 transition"
+          >
+            Explore Other Features &rarr;
+          </Link>
+        )}
       </main>
 
       {/* Footer copyright */}
