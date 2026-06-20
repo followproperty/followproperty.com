@@ -104,7 +104,7 @@ Example response:
   console.log("[VoiceLeads Service] Prompt Sent:\n", `System: ${systemPrompt}\nUser: Transcript: "${text}"`);
 
   // Try with Llama 3.3 70B model first
-  const primaryModel = "llama-3.3-70b-specdec";
+  const primaryModel = "llama-3.3-70b-versatile";
   console.log("[VoiceLeads Service] Attempting Primary Model:", primaryModel);
   try {
     const response = await groq.chat.completions.create({
@@ -130,7 +130,7 @@ Example response:
     }
     
     // Fallback to Llama 3 8B
-    const fallbackModel = "llama3-8b-8192";
+    const fallbackModel = "llama-3.1-8b-instant";
     console.log("[VoiceLeads Service] Attempting Fallback Model:", fallbackModel);
     try {
       const response = await groq.chat.completions.create({

@@ -58,7 +58,7 @@ export async function POST(req) {
 
     // 5. Groq Whisper Transcription
     let rawRequirement = "";
-    let status = "new";
+    let status = "completed";
     let reviewNeeded = false;
     let transcriptionSuccess = true;
 
