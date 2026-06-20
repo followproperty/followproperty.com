@@ -49,17 +49,32 @@ export async function POST(req) {
 
     // 4. Cloudinary Upload
     let audioUrl = "";
+    let status = "completed";
+    let reviewNeeded = false;
+
     try {
       audioUrl = await uploadAudioToCloudinary(buffer, audioFile.name || "voice_lead.webm");
     } catch (uploadError) {
       console.error("[Voice Leads API] Cloudinary upload failed:", uploadError);
-      // We will continue saving the lead even if Cloudinary fails, but mark it for review
+      status = "needs_review";
+      reviewNeeded = true;
+
+      // Write diagnostics to local log file for developer debugging
+      try {
+        const fs = require("fs");
+        const path = require("path");
+        const logMsg = `[${new Date().toISOString()}] Cloudinary Upload Failed\n` +
+          `Error: ${uploadError.message || uploadError}\n` +
+          `Stack: ${uploadError.stack || "N/A"}\n` +
+          `JSON: ${JSON.stringify(uploadError)}\n\n`;
+        fs.appendFileSync(path.join(process.cwd(), "cloudinary_error.log"), logMsg);
+      } catch (logErr) {
+        console.error("Failed to write to cloudinary_error.log:", logErr);
+      }
     }
 
     // 5. Groq Whisper Transcription
     let rawRequirement = "";
-    let status = "completed";
-    let reviewNeeded = false;
     let transcriptionSuccess = true;
 
     try {
