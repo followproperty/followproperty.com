@@ -46,6 +46,21 @@ export default function VoiceLeadsPage() {
     };
   }, []);
 
+  // Auto scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
+  // Auto scroll to submit options when recording stops and preview is ready
+  useEffect(() => {
+    if (audioUrlPreview && !isRecording && previewRef.current) {
+      const timer = setTimeout(() => {
+        previewRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [audioUrlPreview, isRecording]);
+
   const handlePhoneSubmit = (e) => {
     e.preventDefault();
     if (!/^\d{10}$/.test(phoneNumber)) {
@@ -105,11 +120,6 @@ export default function VoiceLeadsPage() {
         // Stop microphone use
         stream.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
-
-        // Auto scroll to submit options
-        setTimeout(() => {
-          previewRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }, 150);
       };
 
       recorder.start();
@@ -154,6 +164,11 @@ export default function VoiceLeadsPage() {
     setDurationSeconds(0);
     setError("");
     setIsRecording(false);
+
+    // Scroll back to top to show instructions and record button
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 50);
   };
 
   const handleLeadSubmit = async () => {
@@ -405,6 +420,18 @@ export default function VoiceLeadsPage() {
               {/* Preview Player & Action Trigger buttons */}
               {audioUrlPreview && !isRecording && (
                 <div ref={previewRef} className="space-y-4 pt-2">
+                  {durationSeconds < 5 && (
+                    <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl flex gap-2.5 items-start text-xs text-[#DC2626] leading-relaxed shadow-sm">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-[#DC2626] mt-0.5" />
+                      <div className="space-y-0.5">
+                        <span className="font-bold block">Recording too short</span>
+                        <p className="text-slate-600 font-medium">
+                          Your recording is only {durationSeconds} seconds. Please record a message longer than 5 seconds.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase text-brand-slate tracking-wider">Review recording</span>
                     <audio src={audioUrlPreview} controls className="w-full focus:outline-none" />
