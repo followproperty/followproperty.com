@@ -34,6 +34,7 @@ export default function VoiceLeadsPage() {
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
+  const previewRef = useRef(null);
 
   // Stop recording tracks and clean up intervals on unmount
   useEffect(() => {
@@ -104,6 +105,11 @@ export default function VoiceLeadsPage() {
         // Stop microphone use
         stream.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
+
+        // Auto scroll to submit options
+        setTimeout(() => {
+          previewRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 150);
       };
 
       recorder.start();
@@ -300,37 +306,39 @@ export default function VoiceLeadsPage() {
               </div>
 
               {/* Example box matching target requirement */}
-              <div className="bg-white border border-brand-border border-l-4 border-l-[#325fec] rounded-r-xl p-4 space-y-3 text-xs text-[#0F1629] leading-relaxed shadow-sm">
-                <div>
-                  <span className="font-extrabold uppercase tracking-wider text-[#325fec] flex items-center gap-1">
-                    💡 You can record in your preferred language:
-                  </span>
-                  <p className="text-brand-slate font-semibold text-[11px] mt-0.5">
-                    English, Hindi, or Hinglish (mix) are supported.
-                  </p>
-                </div>
-                
-                <div className="border-t border-slate-100 pt-2.5">
-                  <p className="text-[#0F1629] font-bold text-[11px] mb-2 flex items-center gap-1 bg-[#FAFAF8] px-2 py-1 rounded border border-brand-border">
-                    🗣️ Speak like this / आप इस तरह से बोल सकते हैं:
-                  </p>
+              {!audioBlob && (
+                <div className="bg-white border border-brand-border border-l-4 border-l-[#325fec] rounded-r-xl p-4 space-y-3 text-xs text-[#0F1629] leading-relaxed shadow-sm">
+                  <div>
+                    <span className="font-extrabold uppercase tracking-wider text-[#325fec] flex items-center gap-1">
+                      💡 You can record in your preferred language:
+                    </span>
+                    <p className="text-brand-slate font-semibold text-[11px] mt-0.5">
+                      English, Hindi, or Hinglish (mix) are supported.
+                    </p>
+                  </div>
                   
-                  <div className="space-y-3 pl-1">
-                    <div>
-                      <span className="font-bold text-brand-slate text-[9px] uppercase tracking-wider block mb-0.5">English</span>
-                      <p className="italic text-slate-700 font-medium">
-                        "Looking for a 3 BHK apartment in Gurgaon Sector 54, budget around 2 Crores. I need it for self-use and prefer a middle or high floor."
-                      </p>
-                    </div>
-                    <div className="border-t border-dashed border-slate-100 pt-2.5">
-                      <span className="font-bold text-brand-slate text-[9px] uppercase tracking-wider block mb-0.5">Hindi / Hinglish</span>
-                      <p className="italic text-slate-700 font-medium">
-                        "मुझे गुड़गांव सेक्टर 54 में 3 BHK फ्लैट चाहिए, बजट लगभग 2 करोड़। खुद के रहने के लिए, मिडल या हाई फ्लोर पर।"
-                      </p>
+                  <div className="border-t border-slate-100 pt-2.5">
+                    <p className="text-[#0F1629] font-bold text-[11px] mb-2 flex items-center gap-1 bg-[#FAFAF8] px-2 py-1 rounded border border-brand-border">
+                      🗣️ Speak like this / आप इस तरह से बोल सकते हैं:
+                    </p>
+                    
+                    <div className="space-y-3 pl-1">
+                      <div>
+                        <span className="font-bold text-brand-slate text-[9px] uppercase tracking-wider block mb-0.5">English</span>
+                        <p className="italic text-slate-700 font-medium">
+                          "Looking for a 3 BHK apartment in Gurgaon Sector 54, budget around 2 Crores. I need it for self-use and prefer a middle or high floor."
+                        </p>
+                      </div>
+                      <div className="border-t border-dashed border-slate-100 pt-2.5">
+                        <span className="font-bold text-brand-slate text-[9px] uppercase tracking-wider block mb-0.5">Hindi / Hinglish</span>
+                        <p className="italic text-slate-700 font-medium">
+                          "मुझे गुड़गांव सेक्टर 54 में 3 BHK फ्लैट चाहिए, बजट लगभग 2 करोड़। खुद के रहने के लिए, मिडल या हाई फ्लोर पर।"
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Recorder UI Widget */}
               <div className="flex flex-col items-center justify-center py-4 space-y-4">
@@ -396,7 +404,7 @@ export default function VoiceLeadsPage() {
 
               {/* Preview Player & Action Trigger buttons */}
               {audioUrlPreview && !isRecording && (
-                <div className="space-y-4 pt-2">
+                <div ref={previewRef} className="space-y-4 pt-2">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase text-brand-slate tracking-wider">Review recording</span>
                     <audio src={audioUrlPreview} controls className="w-full focus:outline-none" />
