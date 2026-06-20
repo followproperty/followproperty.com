@@ -9,7 +9,7 @@ cloudinary.config({
 });
 
 // Configure Groq
-const groqApiKey = process.env.GROq_api || process.env.GROQ_API_KEY;
+const groqApiKey = process.env.GROQ_API || process.env.GROq_api || process.env.GROQ_API_KEY;
 const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
 /**
@@ -101,35 +101,60 @@ Example response:
   "language": "English"
 }`;
 
+  console.log("[VoiceLeads Service] Prompt Sent:\n", `System: ${systemPrompt}\nUser: Transcript: "${text}"`);
+
   // Try with Llama 3.3 70B model first
+  const primaryModel = "llama-3.3-70b-specdec";
+  console.log("[VoiceLeads Service] Attempting Primary Model:", primaryModel);
   try {
     const response = await groq.chat.completions.create({
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Transcript: "${text}"` }
       ],
-      model: "llama-3.3-70b-specdec",
+      model: primaryModel,
       response_format: { type: "json_object" },
       temperature: 0.1,
     });
 
     const content = response.choices[0]?.message?.content;
-    return JSON.parse(content);
+    console.log("[VoiceLeads Service] Primary Model Raw Response:", content);
+    
+    const parsed = JSON.parse(content);
+    console.log("[VoiceLeads Service] Primary Model Parsed Response:", parsed);
+    return parsed;
   } catch (error) {
-    console.warn("Llama 3.3 70B extraction failed, trying Llama 3 8B fallback...", error);
+    console.error("[VoiceLeads Service] Primary Model Error:", error.message);
+    if (error instanceof SyntaxError) {
+      console.error("[VoiceLeads Service] Primary JSON Parse Error:", error);
+    }
     
     // Fallback to Llama 3 8B
-    const response = await groq.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `Transcript: "${text}"` }
-      ],
-      model: "llama3-8b-8192",
-      response_format: { type: "json_object" },
-      temperature: 0.1,
-    });
+    const fallbackModel = "llama3-8b-8192";
+    console.log("[VoiceLeads Service] Attempting Fallback Model:", fallbackModel);
+    try {
+      const response = await groq.chat.completions.create({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Transcript: "${text}"` }
+        ],
+        model: fallbackModel,
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+      });
 
-    const content = response.choices[0]?.message?.content;
-    return JSON.parse(content);
+      const content = response.choices[0]?.message?.content;
+      console.log("[VoiceLeads Service] Fallback Model Raw Response:", content);
+      
+      const parsed = JSON.parse(content);
+      console.log("[VoiceLeads Service] Fallback Model Parsed Response:", parsed);
+      return parsed;
+    } catch (fallbackError) {
+      console.error("[VoiceLeads Service] Fallback Model Error:", fallbackError.message);
+      if (fallbackError instanceof SyntaxError) {
+        console.error("[VoiceLeads Service] Fallback JSON Parse Error:", fallbackError);
+      }
+      throw fallbackError; // Rethrow to let the API endpoint handle it
+    }
   }
 }
