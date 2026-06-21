@@ -3,6 +3,6 @@
 import React from "react";
 import VoiceLeadCollector from "@/components/forms/VoiceLeadCollector";
 
-export default function VoiceLeadsPage() {
-  return <VoiceLeadCollector leadType="buy" />;
+export default function IWantToSellPage() {
+  return <VoiceLeadCollector leadType="sell" />;
 }

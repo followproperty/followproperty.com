@@ -17,6 +17,7 @@ export async function POST(req) {
     const phoneNumber = formData.get("phoneNumber")?.toString().trim();
     const durationSeconds = Number(formData.get("durationSeconds") || 0);
     const audioFile = formData.get("audio");
+    const leadType = formData.get("leadType")?.toString().trim() || "buy";
 
     // 3. Validation Checks
     // Validate phone number (exactly 10 digits)
@@ -131,7 +132,8 @@ export async function POST(req) {
       durationSeconds,
       source: "qr_voice",
       status,
-      reviewNeeded
+      reviewNeeded,
+      leadType
     });
 
     return NextResponse.json(

@@ -77,6 +77,12 @@ const VoiceLeadSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
       index: true
+    },
+    leadType: {
+      type: String,
+      enum: ["buy", "sell"],
+      default: "buy",
+      index: true
     }
   },
   {
