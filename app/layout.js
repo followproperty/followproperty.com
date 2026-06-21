@@ -20,6 +20,9 @@ export const metadata = {
   icons: {
     icon: "/favicon.svg",
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
 };
 
 export default function RootLayout({ children }) {
