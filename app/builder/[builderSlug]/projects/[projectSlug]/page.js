@@ -165,17 +165,54 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
     { id: "floorplan", label: "Floor Plan & Master Plan" }
   ];
 
+  // Dynamic coordinates extraction
+  let geoCoordinates = undefined;
+  if (project.gps) {
+    const coords = project.gps.split(",");
+    if (coords.length === 2) {
+      const lat = parseFloat(coords[0].trim());
+      const lng = parseFloat(coords[1].trim());
+      if (!isNaN(lat) && !isNaN(lng)) {
+        geoCoordinates = {
+          "@type": "GeoCoordinates",
+          "latitude": lat,
+          "longitude": lng
+        };
+      }
+    }
+  }
+
+  // Dynamic amenity features mapping
+  const schemaAmenities = (project.amenities && project.amenities.length > 0)
+    ? project.amenities
+    : amenitiesList.map(a => a.name);
+
+  const amenityFeatures = schemaAmenities.map(amenityName => ({
+    "@type": "LocationFeatureSpecification",
+    "name": amenityName,
+    "value": true
+  }));
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "RealEstateProject",
     "name": project.projectName,
     "description": project.tagline || `Real estate development project ${project.projectName} by ${project.builderName}`,
+    "url": `https://followproperty.com/builder/${builderSlug}/projects/${projectSlug}`,
+    "image": project.images && project.images.length > 0 ? project.images : undefined,
     "address": {
       "@type": "PostalAddress",
       "addressLocality": project.locality || "",
       "addressRegion": project.city || "",
       "addressCountry": "IN"
     },
+    "geo": geoCoordinates,
+    "amenityFeature": amenityFeatures.length > 0 ? amenityFeatures : undefined,
+    "builder": project.builderName ? {
+      "@type": "Organization",
+      "name": project.builderName,
+      "url": resolvedBuilderSlug ? `https://followproperty.com/builders/${resolvedBuilderSlug}` : undefined
+    } : undefined,
     "offers": project.minPrice ? {
       "@type": "AggregateOffer",
       "priceCurrency": "INR",
@@ -183,6 +220,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
       "highPrice": project.maxPrice || project.minPrice
     } : undefined
   };
+
 
   return (
     <DashboardLayout>
