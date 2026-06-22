@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Sidebar from "../dashboard/Sidebar";
 import Navbar from "../dashboard/Navbar";
+import { requestFcmPermissionAndRegister } from "@/lib/fcm-client";
 import BottomNav from "../dashboard/BottomNav";
 import Footer from "../landing/Footer";
 import Loading from "../ui/Loading";
@@ -39,6 +40,8 @@ export default function DashboardLayout({ children }) {
           if (typeof window !== "undefined") {
             sessionStorage.setItem("isAuthenticated", "true");
           }
+          // Trigger FCM background registration
+          requestFcmPermissionAndRegister();
           const token = await currentUser.getIdToken();
           const res = await fetch("/api/auth/verify", {
             method: "POST",

@@ -19,6 +19,80 @@ export default function Navbar({ onMenuClick }) {
     return null;
   });
 
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
+
+    const loadUnreadCount = async () => {
+      try {
+        const res = await fetch("/api/notifications/unread-count");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) setUnreadCount(json.data.count);
+        }
+      } catch (err) {
+        console.error("Error fetching unread count:", err);
+      }
+    };
+
+    loadUnreadCount();
+    const interval = setInterval(loadUnreadCount, 30000); // Poll every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const loadNotifications = async () => {
+    try {
+      const res = await fetch("/api/notifications?limit=5");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setNotifications(json.data);
+      }
+    } catch (err) {
+      console.error("Error loading notifications list:", err);
+    }
+  };
+
+  const handleNotifClick = async (notif) => {
+    setNotifDropdownOpen(false);
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: notif._id })
+      });
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error(err);
+    }
+
+    if (notif.projectId) {
+      router.push(`/projects/${notif.projectId._id || notif.projectId}`);
+    } else {
+      router.push("/notifications");
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    setNotifDropdownOpen(false);
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ all: true })
+      });
+      setUnreadCount(0);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -133,14 +207,97 @@ export default function Navbar({ onMenuClick }) {
         </button>
         */}
 
-        {/* Notifications
-        <button
-          className="bg-transparent border-none relative cursor-pointer flex items-center justify-center"
-        >
-          <Bell size={20} className="text-brand-slate" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border-2 border-white bg-brand-red" />
-        </button>
-        */}
+        {/* Notifications Bell */}
+        {user && (
+          <div className="relative">
+            <button
+              onClick={() => {
+                if (!notifDropdownOpen) {
+                  loadNotifications();
+                }
+                setNotifDropdownOpen(!notifDropdownOpen);
+                setDropdownOpen(false); // Close profile dropdown
+              }}
+              className="bg-transparent border-none relative cursor-pointer flex items-center justify-center p-1 hover:bg-brand-bg-alt rounded-lg transition-colors"
+            >
+              <Bell size={20} className="text-brand-slate" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-brand-red text-white text-[9px] font-bold px-1 border border-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {notifDropdownOpen && (
+              <>
+                {/* Backdrop Click Dismiss */}
+                <div
+                  className="fixed inset-0 z-20 bg-transparent cursor-default"
+                  onClick={() => setNotifDropdownOpen(false)}
+                />
+
+                {/* Dropdown Box */}
+                <div className="absolute right-0 mt-2.5 w-[320px] max-w-[calc(100vw-32px)] rounded-2xl border bg-brand-bg-card border-brand-border shadow-brand-md z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-1.5 duration-150">
+                  <div className="px-4 py-3 border-b border-brand-border flex items-center justify-between bg-brand-bg-alt">
+                    <span className="text-xs font-extrabold text-brand-navy">Notifications</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="text-[10px] text-brand-blue font-bold border-none bg-transparent cursor-pointer hover:underline p-0"
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="max-h-[280px] overflow-y-auto divide-y divide-brand-border/60">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-brand-slate font-semibold">
+                        No notifications yet.
+                      </div>
+                    ) : (
+                      notifications.map((notif) => (
+                        <div
+                          key={notif._id}
+                          onClick={() => handleNotifClick(notif)}
+                          className={`p-3.5 hover:bg-brand-bg-alt transition-colors cursor-pointer text-left flex flex-col gap-1 ${
+                            !notif.isRead ? "bg-brand-blue-bg/20" : ""
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-xs font-bold text-brand-navy line-clamp-1">{notif.title}</span>
+                            {!notif.isRead && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-brand-slate m-0 line-clamp-2 leading-relaxed">
+                            {notif.message}
+                          </p>
+                          <span className="text-[9px] text-brand-slate-light font-medium mt-1">
+                            {new Date(notif.createdAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            })}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <Link
+                    href="/notifications"
+                    onClick={() => setNotifDropdownOpen(false)}
+                    className="block text-center py-2.5 bg-brand-bg-alt border-t border-brand-border text-[11px] font-bold text-brand-blue no-underline hover:bg-brand-bg-card transition-colors"
+                  >
+                    View all alerts
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Divider
         <div className="hidden md:block w-[1px] h-6 bg-brand-border" />

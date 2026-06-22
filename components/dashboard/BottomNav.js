@@ -24,7 +24,7 @@ export default function BottomNav() {
     if (pathname.startsWith("/portfolio")) return "portfolio";
     if (pathname.startsWith("/watchlist")) return "watchlist";
     if (pathname.startsWith("/projects")) return "projects";
-    if (pathname === "/alerts") return "alerts";
+    if (pathname.startsWith("/notifications")) return "alerts";
     return "";
   };
 
@@ -43,7 +43,7 @@ export default function BottomNav() {
   ];
 
   const moreItems = [
-    // { id: "alerts", label: "Alerts", icon: BellRing, path: "#" },
+    { id: "alerts", label: "Alerts", icon: BellRing, path: "/notifications" },
     // { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];

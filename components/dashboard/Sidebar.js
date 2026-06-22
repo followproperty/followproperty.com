@@ -22,7 +22,7 @@ const NAV_ITEMS = [
   { id: "portfolio", label: "Portfolio", icon: Building2, path: "/portfolio" },
   { id: "watchlist", label: "Watchlist", icon: ListPlus, path: "/watchlist" },
   { id: "projects", label: "Projects", icon: Search, path: "/projects" },
-  // { id: "alerts", label: "Alerts", icon: BellRing, path: "#" },
+  { id: "alerts", label: "Alerts", icon: BellRing, path: "/notifications" },
   // { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
   { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
 ];
