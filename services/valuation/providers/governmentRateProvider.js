@@ -36,9 +36,18 @@ function calculateSectorAverage(records) {
   
   const unitGroups = {};
   records.forEach(rec => {
+    let rateVal = 0;
+    if (rec.baseRate !== undefined && rec.baseRate !== null) {
+      rateVal = rec.baseRate;
+    } else if (rec.circleRate !== undefined && rec.circleRate !== null) {
+      rateVal = rec.circleRate;
+    } else if (rec.rate_max !== undefined && rec.rate_max !== null) {
+      rateVal = (rec.rate_max + (rec.rate_min || rec.rate_max)) / 2;
+    }
+
     const unit = rec.unit || 'INR_PER_SQ_YARD';
     if (!unitGroups[unit]) unitGroups[unit] = [];
-    unitGroups[unit].push(rec.baseRate);
+    unitGroups[unit].push(rateVal);
   });
   
   let bestUnit = 'INR_PER_SQ_YARD';
@@ -51,6 +60,8 @@ function calculateSectorAverage(records) {
     }
   }
   
+  if (bestRates.length === 0) return null;
+  
   return {
     baseRate: average(bestRates),
     unit: bestUnit
@@ -58,11 +69,11 @@ function calculateSectorAverage(records) {
 }
 
 /**
- * Resolves circle rates for Haryana/Gurgaon.
+ * Resolves circle rates for Haryana/Gurgaon from circle_rate.hr.
  */
 async function getHaryanaRate(property) {
   await connectToDatabase();
-  const db = mongoose.connection.client.db('market_intelligence');
+  const db = mongoose.connection.client.db('circle_rate');
   
   const landUse = property.projectType === 'Commercial' ? 'Commercial' : 'Residential';
   const sectorNum = extractSector(property.locality || property.projectName);
@@ -74,12 +85,16 @@ async function getHaryanaRate(property) {
   // 1. Try Sector-Specific Match
   if (sectorNum) {
     const keyPattern = new RegExp(`(sec|sector)[-_\\s]*${sectorNum}(?!\\d)`, 'i');
-    const records = await db.collection('haryana_rates').find({
+    const records = await db.collection('circle_rate.hr').find({
       district: { $regex: /gurugram|gurgaon/i },
-      landUse: landUse,
+      $or: [
+        { landUse: landUse },
+        { property_type: landUse }
+      ],
       $or: [
         { tehsilKey: { $regex: keyPattern } },
-        { tehsil: { $regex: keyPattern } }
+        { tehsil: { $regex: keyPattern } },
+        { locality: { $regex: keyPattern } }
       ]
     }).toArray();
     
@@ -96,16 +111,25 @@ async function getHaryanaRate(property) {
   // 2. Try Tehsil Fallback
   if (!rateFound) {
     const fallbackTehsil = getTehsilForSector(sectorNum) || 'gurugram';
-    const summary = await db.collection('haryana_tehsil_summaries').findOne({
-      district: { $regex: /gurugram|gurgaon/i },
-      tehsilKey: fallbackTehsil
-    });
+    const fallbackPattern = new RegExp(fallbackTehsil, 'i');
     
-    if (summary && summary.rates) {
-      const rateObj = landUse === 'Commercial' ? summary.rates.commercial : summary.rates.residential;
-      if (rateObj && rateObj.value) {
-        baseRate = rateObj.value;
-        unit = rateObj.unit || 'INR_PER_SQ_YARD';
+    const records = await db.collection('circle_rate.hr').find({
+      district: { $regex: /gurugram|gurgaon/i },
+      $or: [
+        { landUse: landUse },
+        { property_type: landUse }
+      ],
+      $or: [
+        { tehsilKey: fallbackTehsil.toLowerCase() },
+        { tehsil: { $regex: fallbackPattern } }
+      ]
+    }).toArray();
+    
+    if (records.length > 0) {
+      const avgResult = calculateSectorAverage(records);
+      if (avgResult) {
+        baseRate = avgResult.baseRate;
+        unit = avgResult.unit;
         rateFound = true;
       }
     }
@@ -113,16 +137,21 @@ async function getHaryanaRate(property) {
 
   // 3. District Average Fallback
   if (!rateFound) {
-    const allDistrictRates = await db.collection('haryana_rates').find({
+    const allDistrictRates = await db.collection('circle_rate.hr').find({
       district: { $regex: /gurugram|gurgaon/i },
-      landUse: landUse,
-      unit: 'INR_PER_SQ_YARD'
+      $or: [
+        { landUse: landUse },
+        { property_type: landUse }
+      ]
     }).toArray();
     
     if (allDistrictRates.length > 0) {
-      baseRate = average(allDistrictRates.map(r => r.baseRate));
-      unit = 'INR_PER_SQ_YARD';
-      rateFound = true;
+      const avgResult = calculateSectorAverage(allDistrictRates);
+      if (avgResult) {
+        baseRate = avgResult.baseRate;
+        unit = avgResult.unit;
+        rateFound = true;
+      }
     }
   }
 
