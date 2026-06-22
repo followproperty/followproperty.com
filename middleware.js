@@ -35,6 +35,7 @@ export function middleware(request) {
     pathname.startsWith("/onboarding") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/settings") ||
+    pathname.startsWith("/rera") ||
     isBuilderRoute;
 
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
@@ -115,5 +116,7 @@ export const config = {
     "/builder-application-status",
     "/login",
     "/signup",
+    "/rera/:path*",
+    "/rera",
   ],
 };

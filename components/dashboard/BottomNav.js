@@ -12,7 +12,8 @@ import {
   BarChart3,
   Settings,
   X,
-  Search
+  Search,
+  ShieldCheck
 } from "lucide-react";
 
 export default function BottomNav() {
@@ -25,6 +26,7 @@ export default function BottomNav() {
     if (pathname.startsWith("/watchlist")) return "watchlist";
     if (pathname.startsWith("/projects")) return "projects";
     if (pathname.startsWith("/notifications")) return "alerts";
+    if (pathname.startsWith("/rera")) return "rera";
     return "";
   };
 
@@ -43,6 +45,7 @@ export default function BottomNav() {
   ];
 
   const moreItems = [
+    { id: "rera", label: "RERA Registry", icon: ShieldCheck, path: "/rera" },
     { id: "alerts", label: "Alerts", icon: BellRing, path: "/notifications" },
     // { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
