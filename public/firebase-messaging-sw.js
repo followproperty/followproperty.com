@@ -1,14 +1,15 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// Initialize Firebase in service worker with project credentials
+// Parse Firebase configuration parameters from the service worker registration URL
+const params = new URL(self.location).searchParams;
 firebase.initializeApp({
-  apiKey: "AIzaSyD5a5Chi4C7I6nbtAHsP71drHBGwtmWHfo",
-  authDomain: "followproperty-a392f.firebaseapp.com",
-  projectId: "followproperty-a392f",
-  storageBucket: "followproperty-a392f.firebasestorage.app",
-  messagingSenderId: "111548686685",
-  appId: "1:111548686685:web:7810dbca1c88832ab5c8b4"
+  apiKey: params.get("apiKey") || "",
+  authDomain: params.get("authDomain") || "",
+  projectId: params.get("projectId") || "",
+  storageBucket: params.get("storageBucket") || "",
+  messagingSenderId: params.get("messagingSenderId") || "",
+  appId: params.get("appId") || ""
 });
 
 const messaging = firebase.messaging();
