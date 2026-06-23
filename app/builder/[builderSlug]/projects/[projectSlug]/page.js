@@ -21,6 +21,7 @@ import Watchlist from "@/models/Watchlist";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import LeadButton from "@/app/projects/[id]/LeadButton";
 import CompareButton from "@/app/projects/[id]/CompareButton";
+import ShareButton from "@/app/projects/[id]/ShareButton";
 import CompareBar from "@/components/compare/CompareBar";
 import DownloadReportButton from "@/app/projects/[id]/DownloadReportButton";
 import ProjectTabs from "@/app/projects/[id]/ProjectTabs";
@@ -256,9 +257,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
 
               <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-1.5 sm:gap-2">
                 <CompareButton projectId={project._id.toString()} projectName={project.projectName} />
-                <button className="px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider bg-black/40 backdrop-blur-xs text-white border border-white/20 hover:bg-black/60 active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-sm">
-                  Share
-                </button>
+                <ShareButton projectName={project.projectName} />
               </div>
 
               {/* Bottom Overlay Text */}

@@ -13,7 +13,8 @@ import {
   RefreshCw,
   Info,
   Sparkles,
-  Volume2
+  Volume2,
+  Mail
 } from "lucide-react";
 
 export default function VoiceLeadCollector({ leadType }) {
@@ -21,6 +22,8 @@ export default function VoiceLeadCollector({ leadType }) {
   const [step, setStep] = useState("phone"); // phone, record, submitting, success
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   
   // Audio state
   const [isRecording, setIsRecording] = useState(false);
@@ -63,13 +66,25 @@ export default function VoiceLeadCollector({ leadType }) {
     }
   }, [audioUrlPreview, isRecording]);
 
-  const handlePhoneSubmit = (e) => {
+  const handleStepOneSubmit = (e) => {
     e.preventDefault();
+    let hasError = false;
+
     if (!/^\d{10}$/.test(phoneNumber)) {
       setPhoneError("Please enter a valid 10-digit mobile number.");
-      return;
+      hasError = true;
+    } else {
+      setPhoneError("");
     }
-    setPhoneError("");
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError("Please enter a valid email address.");
+      hasError = true;
+    } else {
+      setEmailError("");
+    }
+
+    if (hasError) return;
     setStep("record");
   };
 
@@ -201,6 +216,7 @@ export default function VoiceLeadCollector({ leadType }) {
     try {
       const formData = new FormData();
       formData.append("phoneNumber", phoneNumber);
+      formData.append("email", email);
       formData.append("durationSeconds", durationSeconds);
       formData.append("leadType", leadType);
 
@@ -236,25 +252,40 @@ export default function VoiceLeadCollector({ leadType }) {
   };
 
   // Text contents tailored for leadType
-  const pageTitle = leadType === "sell" ? "Voice Property Listing" : "Voice Requirement Assistant";
+  const pageTitle = leadType === "sell" 
+    ? "Voice Property Listing" 
+    : leadType === "general" 
+    ? "Tell Us Your Requirements" 
+    : "Voice Requirement Assistant";
+
   const pageSubtitle = leadType === "sell"
     ? "Simply speak the details of the property you want to sell, and let our AI match it with potential buyers."
+    : leadType === "general"
+    ? "Describe what you are looking for, whether buying, renting, selling, or leasing, and let our AI handle the matching."
     : "Simply speak what property details you need and let our AI matching engine fetch listings.";
   
   const setupInstructions = leadType === "sell"
-    ? "Enter your 10-digit number. Next, record a voice clip describing property details (location, type, BHK, price, features)."
-    : "Enter your 10-digit number. Next, record a voice clip describing locations, BHKs, and budget targets.";
+    ? "Enter details. Next, record a voice clip describing property details (location, type, BHK, price, features)."
+    : leadType === "general"
+    ? "Enter details. Next, record a voice clip describing any real estate requirements (buying, renting, or leasing in India)."
+    : "Enter details. Next, record a voice clip describing locations, BHKs, and budget targets.";
 
   const guidePills = leadType === "sell"
     ? ["Property Details", "Location", "Expected Price", "Configuration", "Selling Intent"]
+    : leadType === "general"
+    ? ["City/Locality", "Intent (Buy/Rent)", "Budget", "Property Type", "Specials"]
     : ["City", "Locality", "Budget", "Property Type", "Requirement"];
 
   const exampleEnglish = leadType === "sell"
     ? "I want to sell my 3 BHK apartment in Gurgaon Sector 54. Expected price is 2 Crores. The property is on the 8th floor and I'm looking for buyers."
+    : leadType === "general"
+    ? "I'm looking to rent a fully furnished 2 BHK house in Bangalore Indiranagar. My budget is 50,000 per month, and I need parking space."
     : "Looking for a 3 BHK apartment in Gurgaon Sector 54, budget around 2 Crores. I need it for self-use and prefer a middle or high floor.";
 
   const exampleHindi = leadType === "sell"
     ? "मुझे अपना गुड़गांव सेक्टर 54 में 3 BHK फ्लैट बेचना है, एक्सपेक्टेड प्राइस लगभग 2 करोड़। 8th फ्लोर पर है, और मैं खरीदार ढूंढ रहा हूँ।"
+    : leadType === "general"
+    ? "मुझे बैंगलोर इंदिरानगर में किराए पर 2 BHK फर्निश्ड घर चाहिए। बजट 50,000 प्रति महीना है, और पार्किंग होनी चाहिए।"
     : "मुझे गुड़गांव सेक्टर 54 में 3 BHK फ्लैट चाहिए, बजट लगभग 2 करोड़। खुद के रहने के लिए, मिडल या हाई फ्लोर पर।";
 
   return (
@@ -276,12 +307,12 @@ export default function VoiceLeadCollector({ leadType }) {
 
       {/* Main workspace */}
       <main className="w-full flex-1 flex flex-col items-center justify-center px-4 py-12 z-10">
-        {/* Toggle switch for Buyer/Seller pages */}
-        <div className="w-full max-w-md bg-[#F4F3EF] p-1 rounded-xl border border-brand-border-mid mb-4 flex shadow-sm">
+        {/* Toggle switch for Buy/Sell/General pages */}
+        <div className="w-full max-w-md bg-[#F4F3EF] p-1 rounded-xl border border-brand-border-mid mb-4 flex shadow-sm gap-0.5">
           <button
             type="button"
             onClick={() => router.push("/i-want-to-buy")}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-2 text-[10.5px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
               leadType === "buy"
                 ? "bg-white text-[#0F1629] shadow-sm border border-brand-border"
                 : "text-brand-slate hover:text-[#0F1629]"
@@ -292,13 +323,24 @@ export default function VoiceLeadCollector({ leadType }) {
           <button
             type="button"
             onClick={() => router.push("/i-want-to-sell")}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-2 text-[10.5px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
               leadType === "sell"
                 ? "bg-white text-[#0F1629] shadow-sm border border-brand-border"
                 : "text-brand-slate hover:text-[#0F1629]"
             }`}
           >
             I Want To Sell
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/tell-us-your-requirements")}
+            className={`flex-1 py-2 text-[10.5px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+              leadType === "general"
+                ? "bg-white text-[#0F1629] shadow-sm border border-brand-border"
+                : "text-brand-slate hover:text-[#0F1629]"
+            }`}
+          >
+            Tell Us Requirements
           </button>
         </div>
 
@@ -309,7 +351,7 @@ export default function VoiceLeadCollector({ leadType }) {
               <div className="text-center space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-blue-bg border border-brand-blue-border rounded-full text-xs font-semibold text-[#325fec]">
                   <Sparkles className="w-3.5 h-3.5" />
-                  {leadType === "sell" ? "Seller Mode" : "Buyer Mode"}
+                  {leadType === "sell" ? "Seller Mode" : leadType === "general" ? "Requirements Mode" : "Buyer Mode"}
                 </div>
                 <h1 className="text-2xl font-extrabold tracking-tight text-[#0F1629]">{pageTitle}</h1>
                 <p className="text-brand-slate text-sm">
@@ -317,7 +359,7 @@ export default function VoiceLeadCollector({ leadType }) {
                 </p>
               </div>
 
-              <form onSubmit={handlePhoneSubmit} className="space-y-4">
+              <form onSubmit={handleStepOneSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-brand-slate">
                     WhatsApp or Mobile Number
@@ -342,9 +384,36 @@ export default function VoiceLeadCollector({ leadType }) {
                   )}
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-brand-slate">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-slate">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (emailError) setEmailError("");
+                      }}
+                      placeholder="name@example.com"
+                      className="form-input pl-10 text-brand-navy-deep font-semibold text-base py-3"
+                      required
+                    />
+                  </div>
+                  {emailError && (
+                    <p className="text-[#DC2626] text-xs font-medium flex items-center gap-1 mt-1">
+                      <AlertCircle className="w-3 h-3" /> {emailError}
+                    </p>
+                  )}
+                </div>
+
                 <button
                   type="submit"
-                  disabled={phoneNumber.length !== 10}
+                  disabled={phoneNumber.length !== 10 || !email}
                   className="btn-primary w-full py-3.5 text-sm font-bold uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Proceed to Record <ArrowRight className="w-4 h-4" />
@@ -364,15 +433,20 @@ export default function VoiceLeadCollector({ leadType }) {
 
           {step === "record" && (
             <div className="space-y-6">
-              {/* Phone Details Header */}
-              <div className="flex items-center justify-between bg-[#FAFAF8] border border-brand-border px-4 py-2.5 rounded-xl text-sm">
-                <span className="text-brand-slate font-medium">Contact: <strong className="text-[#0F1629] font-bold">{phoneNumber.slice(0, 5)} {phoneNumber.slice(5)}</strong></span>
-                <button
-                  onClick={() => { resetRecording(); setStep("phone"); }}
-                  className="text-xs text-[#325fec] font-bold hover:underline"
-                >
-                  Edit Number
-                </button>
+              {/* Contact Details Header */}
+              <div className="flex flex-col gap-1.5 bg-[#FAFAF8] border border-brand-border px-4 py-3 rounded-xl text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-brand-slate font-medium">Phone: <strong className="text-[#0F1629] font-bold">{phoneNumber.slice(0, 5)} {phoneNumber.slice(5)}</strong></span>
+                  <button
+                    onClick={() => { resetRecording(); setStep("phone"); }}
+                    className="text-xs text-[#325fec] font-bold hover:underline"
+                  >
+                    Edit Details
+                  </button>
+                </div>
+                <div className="text-xs text-brand-slate truncate">
+                  Email: <span className="text-[#0F1629] font-bold">{email}</span>
+                </div>
               </div>
 
               {/* Example box matching target requirement */}
@@ -545,8 +619,8 @@ export default function VoiceLeadCollector({ leadType }) {
 
               <div className="space-y-2">
                 <h1 className="text-2xl font-extrabold tracking-tight text-[#0F1629]">Listing Registered</h1>
-                <p className="text-brand-slate text-sm">
-                  Our AI is currently matching database listings. We will send updates to <span className="text-[#0F1629] font-bold">{phoneNumber}</span> via WhatsApp shortly.
+                <p className="text-brand-slate text-sm leading-relaxed">
+                  Our AI is currently matching database listings. We will send updates to <span className="text-[#0F1629] font-bold">{phoneNumber}</span> and <span className="text-[#0F1629] font-bold">{email}</span> shortly.
                 </p>
               </div>
 
@@ -554,6 +628,7 @@ export default function VoiceLeadCollector({ leadType }) {
                 onClick={() => {
                   resetRecording();
                   setPhoneNumber("");
+                  setEmail("");
                   setStep("phone");
                 }}
                 className="btn-secondary py-3 px-6 text-sm font-bold inline-flex items-center gap-2 cursor-pointer"

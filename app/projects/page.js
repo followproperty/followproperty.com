@@ -44,6 +44,8 @@ function mapProjectToCard(p) {
     minPrice: p.minPrice || 0,
     maxPrice: p.maxPrice || 0,
     marketPrice: p.marketPrice,
+    images: p.images || [],
+    image: p.images && p.images.length > 0 ? p.images[0] : "",
   };
 }
 

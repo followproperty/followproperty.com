@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+const Schema = mongoose.Schema;
 
-const VoiceLeadSchema = new mongoose.Schema(
+const GeneralVoiceLeadSchema = new Schema(
   {
     phoneNumber: {
       type: String,
@@ -86,14 +87,14 @@ const VoiceLeadSchema = new mongoose.Schema(
     },
     leadType: {
       type: String,
-      enum: ["buy", "sell"],
-      default: "buy",
+      default: "general",
       index: true
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    collection: "generalvoiceleads" // Explicitly define separate collection name
   }
 );
 
-export default mongoose.models.VoiceLead || mongoose.model("VoiceLead", VoiceLeadSchema);
+export default mongoose.models.GeneralVoiceLead || mongoose.model("GeneralVoiceLead", GeneralVoiceLeadSchema);

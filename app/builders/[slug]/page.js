@@ -86,7 +86,9 @@ export default async function BuilderProfilePage({ params }) {
       superArea: p.superArea ? parseFloat(p.superArea.replace(/,/g, "")) : (p.avgAreaSqft ? parseFloat(p.avgAreaSqft.replace(/,/g, "")) : 0),
       minPrice: p.minPrice || 0,
       maxPrice: p.maxPrice || 0,
-      marketPrice: p.marketPrice // Safe fallback to raw text range string from DB
+      marketPrice: p.marketPrice, // Safe fallback to raw text range string from DB
+      images: p.images || [],
+      image: p.images && p.images.length > 0 ? p.images[0] : "",
     };
   });
 

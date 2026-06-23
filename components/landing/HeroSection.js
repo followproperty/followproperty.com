@@ -61,7 +61,8 @@ export default function Hero({ authState }) {
     <div className="bg-brand-bg min-h-screen flex flex-col overflow-hidden relative">
       {/* Background texture */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Subtle Video Background (Royalty-free for commercial use, optimized Cloudinary stream) */}
+        {/* Subtle Video Background (Royalty-free for commercial use, optimized Cloudinary stream) - Commented out for performance optimization */}
+        {/* 
         <video 
           ref={videoRef}
           autoPlay 
@@ -75,6 +76,22 @@ export default function Hero({ authState }) {
             type="video/mp4" 
           />
         </video>
+        */}
+
+        {/* Optimized, Royalty-Free Static Background with Sleek Ken Burns Zoom Effect */}
+        <motion.img 
+          src="/images/hero-bg.png" 
+          alt="Premium Indian Real Estate Towers"
+          initial={{ scale: 1 }}
+          animate={{ scale: 1.08 }}
+          transition={{
+            duration: 24,
+            ease: "linear",
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+          className="absolute inset-0 w-full h-full object-cover opacity-50 select-none pointer-events-none"
+        />
 
         {/* Video Overlay Blend */}
         <div className="absolute inset-0 bg-linear-to-b from-brand-bg/10 via-brand-bg/40 to-brand-bg" />

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import VoiceLead from "@/models/VoiceLead";
+import GeneralVoiceLead from "@/models/GeneralVoiceLead";
 import {
   uploadAudioToCloudinary,
   transcribeAudio,
@@ -15,6 +16,7 @@ export async function POST(req) {
     // 2. Parse multi-part form data
     const formData = await req.formData();
     const phoneNumber = formData.get("phoneNumber")?.toString().trim();
+    const email = formData.get("email")?.toString().trim();
     const durationSeconds = Number(formData.get("durationSeconds") || 0);
     const audioFile = formData.get("audio");
     const leadType = formData.get("leadType")?.toString().trim() || "buy";
@@ -24,6 +26,14 @@ export async function POST(req) {
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
       return NextResponse.json(
         { success: false, error: "Invalid phone number. Must be exactly 10 digits." },
+        { status: 400 }
+      );
+    }
+
+    // Validate email address
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid or missing email address." },
         { status: 400 }
       );
     }
@@ -117,9 +127,10 @@ export async function POST(req) {
       }
     }
 
-    // 7. Save to VoiceLead Collection
-    const voiceLead = await VoiceLead.create({
+    // 7. Save to Database Collection (conditional on leadType)
+    const dbPayload = {
       phoneNumber,
+      email,
       audioUrl,
       rawRequirement,
       city,
@@ -134,7 +145,14 @@ export async function POST(req) {
       status,
       reviewNeeded,
       leadType
-    });
+    };
+
+    let voiceLead;
+    if (leadType === "general") {
+      voiceLead = await GeneralVoiceLead.create(dbPayload);
+    } else {
+      voiceLead = await VoiceLead.create(dbPayload);
+    }
 
     return NextResponse.json(
       {

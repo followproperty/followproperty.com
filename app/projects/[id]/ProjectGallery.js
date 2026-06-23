@@ -96,7 +96,7 @@ export default function ProjectGallery({ projectName, images = [], children }) {
               )}
             </>
           ) : (
-            <div className="absolute inset-0 bg-linear-to-br from-brand-navy-deep via-brand-navy to-brand-navy-mid">
+            <div className="absolute inset-0 bg-linear-to-br from-brand-navy-deep via-brand-navy to-brand-navy-mid flex flex-col items-center justify-center text-center p-6">
               {/* Subtle mesh background grid */}
               <div 
                 className="absolute inset-0 opacity-15 pointer-events-none" 
@@ -109,8 +109,19 @@ export default function ProjectGallery({ projectName, images = [], children }) {
               <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[radial-gradient(circle_at_bottom_left,rgba(81,143,255,0.08),transparent_70%)] pointer-events-none" />
               
               {/* Building icon in background */}
-              <Building2 size={130} className="text-white/4 absolute right-10 bottom-4 pointer-events-none" />
-              <div className="absolute inset-0 bg-linear-to-t from-black/75 via-transparent to-transparent pointer-events-none" />
+              <Building2 size={130} className="text-white/5 absolute right-10 bottom-4 pointer-events-none" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+              
+              {/* Centered Placeholder Text */}
+              <div className="relative z-10 flex flex-col items-center gap-2 text-white/90 max-w-xs animate-pulse">
+                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center border border-white/20 mb-1 shadow-md">
+                  <Building2 size={28} className="text-white/80" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-black tracking-tight text-white m-0">Images Coming Soon</h3>
+                <p className="text-[11px] text-white/60 font-semibold leading-normal m-0">
+                  We are currently verifying and uploading verified photos for this project.
+                </p>
+              </div>
             </div>
           )}
           {children}
