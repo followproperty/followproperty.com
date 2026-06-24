@@ -7,7 +7,7 @@ import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import LeadForm from "@/components/lead/LeadForm";
 
-export default function DownloadReportButton({ projectId, projectName = "", projectPdf, variant }) {
+export default function DownloadReportButton({ projectId, projectName = "", projectPdf, project, variant }) {
   const [downloading, setDownloading] = useState(false);
   const [success, setSuccess] = useState(false);
   
@@ -18,7 +18,10 @@ export default function DownloadReportButton({ projectId, projectName = "", proj
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoadingAuth(false);
@@ -26,22 +29,26 @@ export default function DownloadReportButton({ projectId, projectName = "", proj
     return () => unsubscribe();
   }, []);
 
-  // Return early if no projectPdf is configured
-  if (!projectPdf) return null;
-
   const triggerPDFDownload = async () => {
     if (downloading) return;
     setDownloading(true);
     try {
-      if (projectPdf.startsWith("/")) {
-        const a = document.createElement("a");
-        a.href = projectPdf;
-        a.download = `${projectName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_brochure.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+      if (projectPdf) {
+        if (projectPdf.startsWith("/")) {
+          const a = document.createElement("a");
+          a.href = projectPdf;
+          a.download = `${projectName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_brochure.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        } else {
+          window.open(projectPdf, "_blank");
+        }
+      } else if (project) {
+        const { generateProjectPDF } = await import("@/utils/pdf/generator");
+        generateProjectPDF(project);
       } else {
-        window.open(projectPdf, "_blank");
+        console.warn("No project PDF or project data available to download");
       }
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);

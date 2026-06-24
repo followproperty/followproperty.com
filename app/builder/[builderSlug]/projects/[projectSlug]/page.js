@@ -597,14 +597,13 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
             </div>
 
             {/* Brochure Card */}
-            {project.projectPdf && (
-              <DownloadReportButton 
-                projectId={project._id.toString()} 
-                projectName={project.projectName}
-                projectPdf={project.projectPdf}
-                variant="brochure-card"
-              />
-            )}
+            <DownloadReportButton 
+              projectId={project._id.toString()} 
+              projectName={project.projectName}
+              projectPdf={project.projectPdf}
+              project={JSON.parse(JSON.stringify(project))}
+              variant="brochure-card"
+            />
 
             {/* Lead capture form */}
             <div className="bg-brand-bg-card p-5 rounded-3xl border border-brand-border shadow-brand text-left">
