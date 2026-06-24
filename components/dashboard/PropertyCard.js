@@ -53,16 +53,19 @@ export default function PropertyCard({ property, watchlistId }) {
           {property.title}
         </span>
         
-        <div className={`absolute top-3 left-3 z-10 ${
-          isReady 
-            ? "badge-emerald" 
-            : "badge-amber"
-        }`}>
-          {property.status}
-        </div>
-        
-        <div className="badge-translucent absolute top-3 right-3 z-10">
-          {property.specificType}
+        {/* Badges container to prevent overlapping text */}
+        <div className="absolute top-3 left-3 right-3 z-10 flex justify-between gap-2 items-start pointer-events-none">
+          <div className={`${
+            isReady 
+              ? "badge-emerald" 
+              : "badge-amber"
+          } shrink-0 pointer-events-auto`}>
+            {property.status}
+          </div>
+          
+          <div className="badge-translucent pointer-events-auto text-right truncate max-w-[65%]" title={property.specificType}>
+            {property.specificType}
+          </div>
         </div>
       </div>
 

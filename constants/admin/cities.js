@@ -16,7 +16,8 @@ export const CITY_TO_STATE = {
   "Ahmedabad": "Gujarat",
   "Kolkata": "West Bengal",
   "Jaipur": "Rajasthan",
-  "Lucknow": "Uttar Pradesh"
+  "Lucknow": "Uttar Pradesh",
+  "Nagpur": "Maharashtra"
 };
 
 export const CITIES = Object.keys(CITY_TO_STATE).sort();
