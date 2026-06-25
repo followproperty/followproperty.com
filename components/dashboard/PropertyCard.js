@@ -29,7 +29,7 @@ export default function PropertyCard({ property, watchlistId }) {
     : property.image;
 
   return (
-    <div className="card-frame flex flex-col cursor-pointer group">
+    <div className="card-frame flex flex-col h-full cursor-pointer group">
       {/* Property Name Header (Visual Image / Fallback Gradient) */}
       <div className="relative h-44 sm:h-48 w-full overflow-hidden flex items-end p-4 border-b border-brand-border">
         {imageUrl ? (

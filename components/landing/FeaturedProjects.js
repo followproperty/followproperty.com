@@ -213,6 +213,7 @@ export default function FeaturedProjects() {
                       padding: "0 12px",
                       flexShrink: 0,
                     }}
+                    className="flex flex-col"
                     animate={{
                       scale: isVisible ? 1 : 0.94,
                       opacity: isVisible ? 1 : 0.3,
