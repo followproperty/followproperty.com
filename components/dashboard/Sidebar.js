@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Search,
   ShieldCheck,
-  Map
+  // Map
 } from "lucide-react";
 
 const NAV_ITEMS = [
