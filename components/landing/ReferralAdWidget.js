@@ -87,7 +87,7 @@ export default function ReferralAdWidget() {
       {/* Close button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-2.5 right-2.5 p-1 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition z-55 cursor-pointer border-0 outline-none"
+        className="absolute bottom-2.5 right-2.5 sm:top-2.5 sm:bottom-auto p-1.5 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition z-55 cursor-pointer border-0 outline-none"
         aria-label="Dismiss referral alert"
       >
         <X className="w-3.5 h-3.5" />
