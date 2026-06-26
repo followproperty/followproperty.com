@@ -8,6 +8,7 @@ import Hero from "@/components/landing/HeroSection";
 import CoreFlows from "@/components/landing/FeaturesSection";
 import FeaturedProjects from "@/components/landing/FeaturedProjects";
 import Footer from "@/components/landing/Footer";
+import ReferralAdWidget from "@/components/landing/ReferralAdWidget";
 
 export default function Home() {
   const [authState, setAuthState] = useState({
@@ -79,6 +80,7 @@ export default function Home() {
       <CoreFlows authState={authState} />
       <FeaturedProjects />
       <Footer />
+      <ReferralAdWidget />
     </div>
   );
 }
