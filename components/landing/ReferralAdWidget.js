@@ -1,22 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { X } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { useToast } from '@/context/ToastContext';
 
 export default function ReferralAdWidget() {
-  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const { showToast } = useToast();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // If we're already on the refer page, don't show the ad
-    if (pathname === '/refer') {
-      setIsDismissed(true);
-      return;
-    }
-
     // Check if dismissed in this session
     const dismissed = sessionStorage.getItem('referral-ad-dismissed');
     if (dismissed) {
@@ -30,7 +24,7 @@ export default function ReferralAdWidget() {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [pathname]);
+  }, []);
 
   const handleDismiss = (e) => {
     e.preventDefault();
@@ -40,6 +34,22 @@ export default function ReferralAdWidget() {
       setIsDismissed(true);
       sessionStorage.setItem('referral-ad-dismissed', 'true');
     }, 450); // wait for slide-out transition
+  };
+
+  const handleRedirect = (e) => {
+    e.preventDefault();
+    if (isRedirecting) return;
+    setIsRedirecting(true);
+
+    showToast(
+      "Connecting to our parent site's referral page. Please wait...",
+      "info",
+      "Parent Site Redirect"
+    );
+
+    setTimeout(() => {
+      window.location.href = "https://www.followproperty.org/refer";
+    }, 2000);
   };
 
   if (isDismissed) return null;
@@ -85,7 +95,17 @@ export default function ReferralAdWidget() {
 
       {/* Inner float wrapper */}
       <div className="animate-float-ad">
-        <Link href="/refer" className="flex items-start gap-3.5 sm:gap-4 no-underline select-none">
+        <div 
+          onClick={handleRedirect} 
+          className="flex items-start gap-3.5 sm:gap-4 no-underline select-none cursor-pointer"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              handleRedirect(e);
+            }
+          }}
+        >
           {/* Thumbnail Image Container with Shine reflection */}
           <div className="relative w-16 sm:w-20 aspect-[3/4] bg-stone-950 rounded-xl overflow-hidden shrink-0 border border-white/5 flex items-center justify-center shadow-inner group">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#fd7933]/10 z-10 pointer-events-none" />
@@ -120,7 +140,7 @@ export default function ReferralAdWidget() {
               <span className="transform group-hover:translate-x-0.5 transition-transform">→</span>
             </div>
           </div>
-        </Link>
+        </div>
       </div>
     </div>
   );
