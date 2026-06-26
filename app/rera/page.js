@@ -151,8 +151,8 @@ export default function ReraPage() {
           </p>
         </div>
 
-        {/* State Selection Scrollbar */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none mb-5 -mx-4 px-4 md:mx-0 md:px-0">
+        {/* State Selection */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap mb-5">
           {STATES.map((state) => (
             <button
               key={state.code}

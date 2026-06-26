@@ -85,9 +85,9 @@ export default function DashboardLayout({ children }) {
       {mounted && isAuthenticated && (
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       )}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden max-w-full">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto flex flex-col justify-between">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col justify-between w-full max-w-full">
           <div className="flex-1 p-4 md:p-8 pb-10">
             {loading ? (
               <Loading text="Securing session..." />
