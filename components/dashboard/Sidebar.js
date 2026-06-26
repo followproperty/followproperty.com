@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  ShieldCheck
+  ShieldCheck,
+  Map
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { id: "projects", label: "Projects", icon: Search, path: "/projects" },
   { id: "alerts", label: "Alerts", icon: BellRing, path: "/notifications" },
   { id: "rera", label: "RERA Registry", icon: ShieldCheck, path: "/rera" },
+  { id: "circle-rates", label: "Circle Rates", icon: Map, path: "/circle-rates" },
   // { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
   { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
 ];

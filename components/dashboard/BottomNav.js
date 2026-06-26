@@ -6,15 +6,16 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
   ListPlus, 
+  Search, 
   Building2, 
+  ShieldCheck, 
   BellRing, 
+  Settings, 
+  X, 
   MoreHorizontal,
-  BarChart3,
-  Settings,
-  X,
-  Search,
-  ShieldCheck
+  Map
 } from "lucide-react";
+
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -46,6 +47,7 @@ export default function BottomNav() {
 
   const moreItems = [
     { id: "rera", label: "RERA Registry", icon: ShieldCheck, path: "/rera" },
+    { id: "circle-rates", label: "Circle Rates", icon: Map, path: "/circle-rates" },
     { id: "alerts", label: "Alerts", icon: BellRing, path: "/notifications" },
     // { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },

@@ -1,15 +1,15 @@
 /**
  * Provider for Government Circle Rates.
- * Handles Haryana (Gurgaon/Gurugram) database queries, mapping, and averaging.
+ * Handles unified database queries for all states (HR, DL, UP) using CircleRate model.
  */
-import mongoose from 'mongoose';
 import connectToDatabase from '../../../lib/db.js';
-import { extractSector, parsePerSqftRate, average } from '../helpers.js';
+import CircleRate from '../../../models/CircleRate.js';
+import { extractSector, average } from '../helpers.js';
 
 export const name = 'Government Rate';
 export const enabled = true;
 
-// Municipal mapping of Gurgaon sectors to administrative Tehsils
+// Municipal mapping of Gurgaon sectors to administrative Tehsils (preserved for backward compatibility)
 const SECTOR_TO_TEHSIL_MAP = {
   Wazirabad: [30, 31, 38, 39, 40, 41, 42, 43, 44, 45, 46, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67],
   Badshahpur: [33, 34, 35, 36, 37, 47, 48, 49, 50, 51, 68, 69, 70, 71, 72, 73, 74, 75],
@@ -31,145 +31,104 @@ function getTehsilForSector(sectorNum) {
   return null;
 }
 
-function calculateSectorAverage(records) {
-  if (!records || records.length === 0) return null;
-  
-  const unitGroups = {};
-  records.forEach(rec => {
-    let rateVal = 0;
-    if (rec.baseRate !== undefined && rec.baseRate !== null) {
-      rateVal = rec.baseRate;
-    } else if (rec.circleRate !== undefined && rec.circleRate !== null) {
-      rateVal = rec.circleRate;
-    } else if (rec.rate_max !== undefined && rec.rate_max !== null) {
-      rateVal = (rec.rate_max + (rec.rate_min || rec.rate_max)) / 2;
-    }
-
-    const unit = rec.unit || 'INR_PER_SQ_YARD';
-    if (!unitGroups[unit]) unitGroups[unit] = [];
-    unitGroups[unit].push(rateVal);
-  });
-  
-  let bestUnit = 'INR_PER_SQ_YARD';
-  let bestRates = [];
-  
-  for (const [unit, rates] of Object.entries(unitGroups)) {
-    if (rates.length > bestRates.length || (unit === 'INR_PER_SQ_YARD' && rates.length === bestRates.length)) {
-      bestUnit = unit;
-      bestRates = rates;
-    }
-  }
-  
-  if (bestRates.length === 0) return null;
-  
-  return {
-    baseRate: average(bestRates),
-    unit: bestUnit
-  };
+// Maps state/city input names to standard uppercase ISO codes
+function resolveStateCode(stateName, cityName) {
+  const s = (stateName || '').toLowerCase().trim();
+  const c = (cityName || '').toLowerCase().trim();
+  if (s === 'haryana' || s === 'gurgaon' || s === 'gurugram' || c === 'gurgaon' || c === 'gurugram') return 'HR';
+  if (s === 'delhi' || c === 'delhi') return 'DL';
+  if (s === 'uttar pradesh' || s === 'up' || c === 'lucknow' || c === 'noida' || c === 'ghaziabad') return 'UP';
+  return null;
 }
 
-/**
- * Resolves circle rates for Haryana/Gurgaon from circle_rate.hr.
- */
-async function getHaryanaRate(property) {
+export async function getRate(property) {
   await connectToDatabase();
-  const db = mongoose.connection.client.db('circle_rate');
-  
-  const landUse = property.projectType === 'Commercial' ? 'Commercial' : 'Residential';
-  const sectorNum = extractSector(property.locality || property.projectName);
-  
-  let baseRate = 0;
-  let unit = 'INR_PER_SQ_YARD';
-  let rateFound = false;
 
-  // 1. Try Sector-Specific Match
-  if (sectorNum) {
-    const keyPattern = new RegExp(`(sec|sector)[-_\\s]*${sectorNum}(?!\\d)`, 'i');
-    const records = await db.collection('circle_rate.hr').find({
-      district: { $regex: /gurugram|gurgaon/i },
-      $or: [
-        { landUse: landUse },
-        { property_type: landUse }
-      ],
-      $or: [
-        { tehsilKey: { $regex: keyPattern } },
-        { tehsil: { $regex: keyPattern } },
-        { locality: { $regex: keyPattern } }
-      ]
-    }).toArray();
-    
-    if (records.length > 0) {
-      const avgResult = calculateSectorAverage(records);
-      if (avgResult) {
-        baseRate = avgResult.baseRate;
-        unit = avgResult.unit;
-        rateFound = true;
+  const stateCode = resolveStateCode(property.state, property.city);
+  if (!stateCode) return null;
+
+  const landUse = property.projectType === 'Commercial' ? 'Commercial' : 'Residential';
+  const district = property.city || property.district || '';
+  const locality = property.locality || property.projectName || '';
+
+  let rateFound = null;
+
+  // 1. Try Locality / Sector-Specific Match
+  if (stateCode === 'HR') {
+    const sectorNum = extractSector(locality);
+    if (sectorNum) {
+      const sectorPattern = new RegExp(`(sec|sector)[-_\\s]*${sectorNum}(?!\\d)`, 'i');
+      const records = await CircleRate.find({
+        stateCode: 'HR',
+        district: { $regex: /gurugram|gurgaon/i },
+        landUse,
+        $or: [
+          { locality: { $regex: sectorPattern } },
+          { tehsil: { $regex: sectorPattern } }
+        ]
+      });
+
+      if (records.length > 0) {
+        rateFound = average(records.map(r => r.circleRate));
+      }
+    }
+  } else {
+    // Delhi / UP exact or fuzzy locality matching
+    const localityClean = locality.trim();
+    if (localityClean) {
+      const records = await CircleRate.find({
+        stateCode,
+        landUse,
+        locality: { $regex: new RegExp(localityClean, 'i') }
+      });
+      if (records.length > 0) {
+        rateFound = average(records.map(r => r.circleRate));
       }
     }
   }
 
-  // 2. Try Tehsil Fallback
-  if (!rateFound) {
+  // 2. Haryana-Specific Tehsil Fallback
+  if (rateFound === null && stateCode === 'HR') {
+    const sectorNum = extractSector(locality);
     const fallbackTehsil = getTehsilForSector(sectorNum) || 'gurugram';
     const fallbackPattern = new RegExp(fallbackTehsil, 'i');
-    
-    const records = await db.collection('circle_rate.hr').find({
+
+    const records = await CircleRate.find({
+      stateCode: 'HR',
       district: { $regex: /gurugram|gurgaon/i },
+      landUse,
       $or: [
-        { landUse: landUse },
-        { property_type: landUse }
-      ],
-      $or: [
-        { tehsilKey: fallbackTehsil.toLowerCase() },
         { tehsil: { $regex: fallbackPattern } }
       ]
-    }).toArray();
-    
+    });
+
     if (records.length > 0) {
-      const avgResult = calculateSectorAverage(records);
-      if (avgResult) {
-        baseRate = avgResult.baseRate;
-        unit = avgResult.unit;
-        rateFound = true;
-      }
+      rateFound = average(records.map(r => r.circleRate));
     }
   }
 
   // 3. District Average Fallback
-  if (!rateFound) {
-    const allDistrictRates = await db.collection('circle_rate.hr').find({
-      district: { $regex: /gurugram|gurgaon/i },
-      $or: [
-        { landUse: landUse },
-        { property_type: landUse }
-      ]
-    }).toArray();
-    
-    if (allDistrictRates.length > 0) {
-      const avgResult = calculateSectorAverage(allDistrictRates);
-      if (avgResult) {
-        baseRate = avgResult.baseRate;
-        unit = avgResult.unit;
-        rateFound = true;
-      }
+  if (rateFound === null && district) {
+    const records = await CircleRate.find({
+      stateCode,
+      district: { $regex: new RegExp(district, 'i') },
+      landUse
+    });
+    if (records.length > 0) {
+      rateFound = average(records.map(r => r.circleRate));
     }
   }
 
-  return parsePerSqftRate(baseRate, unit);
-}
-
-/**
- * Main entry point for Government rates lookup.
- */
-export async function getRate(property) {
-  const state = (property.state || '').toLowerCase().trim();
-  const city = (property.city || '').toLowerCase().trim();
-  
-  if (state === 'haryana' || state === 'gurgaon' || state === 'gurugram' ||
-      city === 'gurgaon' || city === 'gurugram') {
-    return getHaryanaRate(property);
+  // 4. State Average Fallback
+  if (rateFound === null) {
+    const records = await CircleRate.find({
+      stateCode,
+      landUse
+    });
+    if (records.length > 0) {
+      rateFound = average(records.map(r => r.circleRate));
+    }
   }
-  
-  // Return null or fallback for other unconfigured states for V1
-  return null;
+
+  return rateFound;
 }
