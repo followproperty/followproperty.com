@@ -47,7 +47,7 @@ export default function BottomNav() {
 
   const moreItems = [
     { id: "rera", label: "RERA Registry", icon: ShieldCheck, path: "/rera" },
-    { id: "circle-rates", label: "Circle Rates", icon: Map, path: "/circle-rates" },
+    // { id: "circle-rates", label: "Circle Rates", icon: Map, path: "/circle-rates" },
     { id: "alerts", label: "Alerts", icon: BellRing, path: "/notifications" },
     // { id: "reports", label: "Reports", icon: BarChart3, path: "#" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
