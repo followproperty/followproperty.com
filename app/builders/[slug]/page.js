@@ -2,6 +2,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import connectToDatabase from "@/lib/db";
 import MarketProject from "@/models/MarketProject";
+import UpcomingProject from "@/models/UpcomingProject";
 import Builder from "@/models/Builder";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import BuilderProfileClient from "./BuilderProfileClient";
@@ -12,8 +13,18 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   await connectToDatabase();
 
-  const builder = await Builder.findOne({ slug, status: "active" }).lean();
-  const canonicalBuilderName = builder ? builder.name : "Developer";
+  let builder = await Builder.findOne({ slug, status: "active" }).lean();
+  let canonicalBuilderName = builder ? builder.name : "";
+
+  if (!canonicalBuilderName) {
+    const sample = await MarketProject.findOne({ builderSlug: slug }).select("builderName").lean()
+      || await UpcomingProject.findOne({ builderSlug: slug }).select("builderName").lean();
+    if (sample) {
+      canonicalBuilderName = sample.builderName;
+    } else {
+      canonicalBuilderName = "Developer";
+    }
+  }
 
   return {
     title: `${canonicalBuilderName} - Projects & Real Estate Portfolio | FollowProperty`,
@@ -26,25 +37,70 @@ export default async function BuilderProfilePage({ params }) {
   await connectToDatabase();
 
   // 1. Resolve builder using the slug
-  const builder = await Builder.findOne({ slug, status: "active" }).lean();
+  let builder = await Builder.findOne({ slug, status: "active" }).lean();
+  let canonicalBuilderName = "";
 
   if (!builder) {
-    return notFound();
+    const sample = await MarketProject.findOne({ builderSlug: slug }).lean()
+      || await UpcomingProject.findOne({ builderSlug: slug }).lean();
+
+    if (!sample) {
+      return notFound();
+    }
+
+    canonicalBuilderName = sample.builderName;
+
+    // Dynamically and idempotently create the missing Builder record
+    try {
+      const createdBuilder = await Builder.create({
+        name: canonicalBuilderName,
+        slug: slug,
+        status: "active"
+      });
+      builder = createdBuilder.toObject();
+    } catch (e) {
+      console.error("Failed to dynamically register missing builder:", e);
+      builder = {
+        _id: sample.builderId || null,
+        name: canonicalBuilderName,
+        slug: slug,
+        status: "active"
+      };
+    }
+  } else {
+    canonicalBuilderName = builder.name;
   }
 
-  // 2. Query all project documents matching this builderId
-  const dbProjects = await MarketProject.find({
-    builderId: builder._id
-  })
-    .sort({ possessionYear: -1, projectName: 1 })
-    .lean();
+  // 2. Query project documents from both MarketProject and UpcomingProject matching this builder
+  const [marketProjects, upcomingProjects] = await Promise.all([
+    MarketProject.find({
+      $or: [
+        { builderId: builder._id },
+        { builderSlug: slug }
+      ]
+    }).lean(),
+    UpcomingProject.find({
+      builderSlug: slug
+    }).lean()
+  ]);
+
+  const dbProjects = [...marketProjects, ...upcomingProjects];
 
   if (dbProjects.length === 0) {
     return notFound();
   }
 
+  // Sort combined projects: possessionYear descending, projectName ascending
+  dbProjects.sort((a, b) => {
+    const yearA = a.possessionYear || 0;
+    const yearB = b.possessionYear || 0;
+    if (yearB !== yearA) {
+      return yearB - yearA;
+    }
+    return (a.projectName || "").localeCompare(b.projectName || "");
+  });
+
   // 3. Compute builder profile metrics
-  const canonicalBuilderName = builder.name;
   const totalProjects = dbProjects.length;
 
   const deliveredProjects = dbProjects.filter((p) => {
@@ -83,7 +139,9 @@ export default async function BuilderProfilePage({ params }) {
       city: p.city || "",
       builder: canonicalBuilderName,
       possessionYear: p.possessionYear === 0 ? "Ready to Move" : p.possessionYear || p.possessionDate || "TBD",
-      superArea: p.superArea ? parseFloat(p.superArea.replace(/,/g, "")) : (p.avgAreaSqft ? parseFloat(p.avgAreaSqft.replace(/,/g, "")) : 0),
+      superArea: p.superArea 
+        ? (typeof p.superArea === "string" ? parseFloat(p.superArea.replace(/,/g, "")) : p.superArea)
+        : (p.avgAreaSqft ? (typeof p.avgAreaSqft === "string" ? parseFloat(p.avgAreaSqft.replace(/,/g, "")) : p.avgAreaSqft) : 0),
       minPrice: p.minPrice || 0,
       maxPrice: p.maxPrice || 0,
       marketPrice: p.marketPrice, // Safe fallback to raw text range string from DB

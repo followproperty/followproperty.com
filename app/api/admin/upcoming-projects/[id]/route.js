@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import { verifyAdminRequest } from "@/lib/admin/admin-guards";
 import UpcomingProject from "@/models/UpcomingProject";
+import Builder from "@/models/Builder";
 import { 
   normalizeTitleCase, 
   normalizeBuilder, 
@@ -9,7 +10,8 @@ import {
   normalizeCity,
   formatConfiguration,
   formatMarketPriceRange,
-  formatAreaRange
+  formatAreaRange,
+  generateBuilderSlug
 } from "@/utils/admin/normalization";
 
 /**
@@ -135,6 +137,23 @@ export async function PUT(req, { params }) {
 
     // 5. Connect to MongoDB
     await connectToDatabase();
+
+    // Ensure builder exists in Builder collection
+    if (builderName) {
+      const bSlug = generateBuilderSlug(builderName);
+      if (bSlug) {
+        const existingBuilder = await Builder.findOne({
+          $or: [{ name: builderName }, { slug: bSlug }]
+        });
+        if (!existingBuilder) {
+          await Builder.create({
+            name: builderName,
+            slug: bSlug,
+            status: "active"
+          });
+        }
+      }
+    }
 
     // 6. Update document
     const updatedProject = await UpcomingProject.findByIdAndUpdate(

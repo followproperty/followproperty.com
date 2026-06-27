@@ -131,6 +131,11 @@ const UpcomingProjectSchema = new mongoose.Schema(
             type: [String],
             default: []
         },
+        builderId: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: "Builder", 
+            index: true 
+        },
         builderSlug: {
             type: String,
             trim: true,
