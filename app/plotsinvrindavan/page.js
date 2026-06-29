@@ -148,16 +148,16 @@ export default function VrindavanPlotsPage() {
       setIsSuccess(true);
 
       // WhatsApp Redirect URL construction
-      const waNumber = "918796708866";
+      const waNumber = "918796508866";
       const messageText = `Hi! I am interested in the Vrindavan Plotting Project. My details:\nName: ${leadName}\nPhone: ${leadPhone}\nCity: ${leadCity}\nRequesting: ${actionType}`;
       const encodedMsg = encodeURIComponent(messageText);
       const waUrl = `https://wa.me/${waNumber}?text=${encodedMsg}`;
 
-      // Trigger brochure PDF download programmatically if it is a brochure action
+      // Trigger brochure download programmatically if it is a brochure action
       if (actionType.toLowerCase().includes("brochure")) {
         const link = document.createElement("a");
-        link.href = "/Vrindavan_Project_Follow_Property.pdf";
-        link.download = "Vrindavan_Project_Follow_Property.pdf";
+        link.href = "/Vrindavan_Project_Follow_Property.png";
+        link.download = "Vrindavan_Project_Follow_Property.png";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -184,7 +184,7 @@ export default function VrindavanPlotsPage() {
 
   // Quick WhatsApp Direct Button (without filling form first)
   const handleQuickWhatsApp = () => {
-    const waNumber = "918796708866";
+    const waNumber = "918796508866";
     const messageText = `Hi! I am interested in the Vrindavan Plotting Project. Please share the pricing details and brochure.`;
     window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(messageText)}`, "_blank");
   };
@@ -209,7 +209,7 @@ export default function VrindavanPlotsPage() {
               <div className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-white/10 bg-white/5 shadow-inner">
                 <Sparkles size={13} className="text-brand-amber animate-pulse" />
                 <span className="text-[10px] md:text-[11px] text-white/90 tracking-[0.12em] uppercase font-bold">
-                  200 Acres Integrated Township
+                  70+ Acres Integrated Township
                 </span>
               </div>
 
@@ -318,7 +318,7 @@ export default function VrindavanPlotsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { icon: <Compass className="text-brand-blue" size={24} />, title: "200 Acres Township", desc: "Expansive, beautifully integrated development layout" },
+                { icon: <Compass className="text-brand-blue" size={24} />, title: "70+ Acres Township", desc: "Featuring 10 acres of green area and well-planned spaces" },
                 { icon: <Building className="text-brand-blue" size={24} />, title: "Plot Sizes", desc: "100 to 250 Sq. Yd. configurations to suit your needs" },
                 { icon: <Zap className="text-brand-blue" size={24} />, title: "Underground Wiring", desc: "Clean streets with no overhead cables for safety and beauty" },
                 { icon: <Building className="text-brand-blue" size={24} />, title: "Stilt + 3 Construction", desc: "Permitted height allowances for spacious residential designs" },
@@ -538,18 +538,18 @@ export default function VrindavanPlotsPage() {
                 </h3>
                 
                 <p className="text-xs text-brand-slate max-w-sm leading-relaxed font-semibold">
-                  Download the official project brochure and pricing PDF directly. Access the physical site map layout and official documents.
+                  Download the official project brochure and pricing flyer directly. Access the physical site map layout and official documents.
                 </p>
 
                 <button 
                   onClick={() => openInquiryModal("Brochure Section")}
                   className="btn-primary w-full max-w-xs py-3.5 text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Download size={14} /> Download Brochure PDF
+                  <Download size={14} /> Download Brochure Flyer
                 </button>
 
                 <div className="text-[10px] text-brand-slate-light font-bold">
-                  File Size: ~236 KB • PDF Format
+                  File Size: ~474 KB • PNG Image Format
                 </div>
               </div>
 
@@ -610,7 +610,7 @@ export default function VrindavanPlotsPage() {
                 </h3>
                 <p className="text-xs text-brand-slate leading-relaxed font-semibold">
                   {modalTrigger.includes("Brochure") 
-                    ? "Enter your details below to download the brochure PDF and connect with us on WhatsApp." 
+                    ? "Enter your details below to download the brochure flyer and connect with us on WhatsApp." 
                     : "Please fill out this form to connect with our advisor desk on WhatsApp."}
                 </p>
               </div>
@@ -623,7 +623,7 @@ export default function VrindavanPlotsPage() {
                   <div>
                     <h4 className="text-base font-extrabold text-brand-navy m-0">Inquiry Saved!</h4>
                     <p className="text-xs text-brand-slate mt-1 leading-relaxed font-semibold">
-                      Redirecting to WhatsApp and downloading PDF...
+                      Redirecting to WhatsApp and downloading brochure...
                     </p>
                   </div>
                 </div>
