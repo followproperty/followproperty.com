@@ -746,7 +746,6 @@ export default function CircleRatesMap() {
                 </span>
               </div>
             </div>
-          </div>
             
             {activeStats ? (
               <div className="flex items-center justify-between w-full px-4 mt-0.5">
