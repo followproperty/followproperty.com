@@ -4,16 +4,20 @@ import React, { useState, useEffect } from "react";
 import { Mic, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { landingPageData } from "@/data/mock/landing";
 
 export default function FloatingContactButtons() {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
+
+  const isCircleRatesPage = pathname === "/circle-rates";
 
   const rawPhone = landingPageData?.footer?.contact?.phone || "+918796508866";
 
@@ -44,7 +48,9 @@ export default function FloatingContactButtons() {
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 flex flex-col gap-3 md:gap-3.5 select-none pointer-events-auto"
+        className={`fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 flex-col gap-3 md:gap-3.5 select-none pointer-events-auto ${
+          isCircleRatesPage ? "hidden md:flex" : "flex"
+        }`}
         initial="hidden"
         animate="visible"
         variants={containerVariants}
