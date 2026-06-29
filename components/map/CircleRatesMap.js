@@ -479,6 +479,12 @@ export default function CircleRatesMap() {
                 <span className="text-[10px] font-bold text-brand-slate-light uppercase mt-0.5">per Sq. Ft.</span>
               </div>
 
+              {(activeStats.level === "state" || activeStats.level === "district") && activeStats.circleRate && (
+                <p className="text-[10.5px] text-brand-slate-light italic text-center px-2 leading-relaxed">
+                  * Averages calculated from verified sample data currently available. More localities are being added.
+                </p>
+              )}
+
               {/* Grid Rates by Category */}
               <div className="flex flex-col gap-2.5">
                 <h3 className="text-xs font-bold text-brand-navy uppercase tracking-wider">Rates by property type</h3>
@@ -786,6 +792,12 @@ export default function CircleRatesMap() {
                     </div>
                   )}
                 </div>
+
+                {(activeStats.level === "state" || activeStats.level === "district") && activeStats.circleRate && (
+                  <p className="text-[9px] text-brand-slate-light italic text-center leading-normal px-2">
+                    * Averages calculated from available verified sample data. More regions coming soon.
+                  </p>
+                )}
 
                 {/* Level drilldown indicator help */}
                 {level !== "locality" && (
