@@ -7,6 +7,7 @@
 export const CITY_TO_STATE = {
   "Gurgaon": "Haryana",
   "Noida": "Uttar Pradesh",
+  "Vrindavan": "Uttar Pradesh",
   "Delhi": "Delhi",
   "Mumbai": "Maharashtra",
   "Pune": "Maharashtra",

@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { 
   MapPin, 
   Building, 
@@ -64,6 +64,10 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
   // Await route params and searchParams for the project details page
   const { builderSlug, projectSlug } = await params;
   const { watchlistId } = await searchParams;
+
+  if (projectSlug === "vrindavan-plotting-project") {
+    redirect("/plotsinvrindavan");
+  }
 
   await connectToDatabase();
 
