@@ -21,7 +21,9 @@ import {
   Loader2,
   TrendingDown,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 // Helper component to dynamically change map bounds when drilling down
@@ -603,14 +605,16 @@ export default function CircleRatesMap() {
           )}
         </MapContainer>
 
-        {/* Mobile UI Visibility Toggle Button (Visible only on mobile) */}
-        <button
-          onClick={() => setShowMobileUI(!showMobileUI)}
-          className="md:hidden absolute top-[100px] right-3 z-[1010] bg-white border border-brand-border rounded-xl p-2.5 shadow-md flex items-center justify-center text-brand-navy hover:bg-brand-bg transition-all"
-          title={showMobileUI ? "Hide Map UI" : "Show Map UI"}
-        >
-          {showMobileUI ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
+        {/* Mobile ChevronUp toggle button (visible when UI is hidden) */}
+        {!showMobileUI && (
+          <button
+            onClick={() => setShowMobileUI(true)}
+            className="md:hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-[1010] w-12 h-12 rounded-full bg-white border border-brand-border flex items-center justify-center text-brand-navy shadow-brand-lg hover:bg-brand-bg/95 transition-all active:scale-95 animate-bounce-slow"
+            title="Restore Map UI"
+          >
+            <ChevronUp size={24} className="stroke-[2.5]" />
+          </button>
+        )}
 
         {/* Mobile Header: Floating Search & Breadcrumbs (Visible only on mobile) */}
         <div className={`absolute top-3 left-3 right-3 z-[1010] bg-white/94 backdrop-blur-md border border-brand-border rounded-2xl p-3 shadow-md md:hidden transition-all duration-300 ${
@@ -694,10 +698,31 @@ export default function CircleRatesMap() {
         >
           {/* Drawer Drag Bar Handle & Click Toggle */}
           <div 
-            className="w-full py-2 flex flex-col items-center justify-center cursor-pointer border-b border-brand-border/30 hover:bg-brand-bg/20 transition-colors"
-            onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
+            className="w-full py-1.5 flex flex-col items-center justify-center border-b border-brand-border/30 bg-brand-bg/10 relative shrink-0"
           >
-            <div className="w-12 h-1.5 bg-brand-slate-light/35 rounded-full mb-1" />
+            {/* Minimize Completely Button (Down Arrow) */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMobileUI(false);
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-brand-border flex items-center justify-center text-brand-slate hover:text-brand-navy shadow-xs active:scale-95 transition-all"
+              title="Minimize panel"
+            >
+              <ChevronDown size={18} className="stroke-[2.5]" />
+            </button>
+
+            {/* Height Expand/Collapse Click Zone */}
+            <div 
+              className="py-1 flex flex-col items-center justify-center cursor-pointer select-none"
+              onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
+            >
+              <div className="w-10 h-1 bg-brand-slate-light/35 rounded-full mb-1" />
+              <span className="text-[9px] font-bold text-brand-slate-light uppercase tracking-wider">
+                {isDrawerExpanded ? "Collapse Details" : "Expand Details"}
+              </span>
+            </div>
+          </div>
             
             {activeStats ? (
               <div className="flex items-center justify-between w-full px-4 mt-0.5">
