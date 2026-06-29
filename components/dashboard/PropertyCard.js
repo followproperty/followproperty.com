@@ -54,7 +54,7 @@ export default function PropertyCard({ property, watchlistId }) {
         </span>
         
         {/* Badges container to prevent overlapping text */}
-        <div className="absolute top-3 left-3 right-3 z-10 flex justify-between gap-2 items-start pointer-events-none">
+        <div className="absolute top-3 left-3 right-3 z-10 flex justify-between gap-1.5 items-start pointer-events-none">
           <div className={`${
             isReady 
               ? "badge-emerald" 
@@ -62,8 +62,17 @@ export default function PropertyCard({ property, watchlistId }) {
           } shrink-0 pointer-events-auto`}>
             {property.status}
           </div>
+
+          {(property.projectSlug === "vrindavan-plotting-project" || property.isTrending) && (
+            <div className="shrink-0 pointer-events-auto animate-pulse">
+              <span className="bg-linear-to-r from-amber-500 to-rose-500 text-white font-extrabold rounded-full px-2 py-0.5 text-[8px] uppercase tracking-wider shadow-xs flex items-center gap-1 border border-white/10">
+                <span className="w-1 h-1 rounded-full bg-white animate-ping" />
+                Trending
+              </span>
+            </div>
+          )}
           
-          <div className="badge-translucent pointer-events-auto text-right truncate max-w-[65%]" title={property.specificType}>
+          <div className="badge-translucent pointer-events-auto text-right truncate max-w-[40%]" title={property.specificType}>
             {property.specificType}
           </div>
         </div>

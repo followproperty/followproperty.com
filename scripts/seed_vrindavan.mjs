@@ -104,7 +104,7 @@ async function run() {
       marketPrice: "₹45 Lakh - ₹1.12 Cr",
       superArea: "100 - 250",
       projectPdf: "/Vrindavan_Project_Follow_Property.png",
-      images: ["/Vrindavan_Project_Follow_Property.png"],
+      images: [],
       videos: [],
       projectSource: "upcoming",
       createdBy: adminUser._id,
