@@ -17,23 +17,27 @@ export async function GET(request) {
         return NextResponse.json({ success: true, data: [] }, { status: 200 });
       }
 
-      // Search matching geometries across all levels
+      // 1. Search matching local geometries across all levels
       const matchedGeometries = await Geometry.find({
         name: { $regex: new RegExp(queryStr, 'i') }
       }).limit(8);
 
-      const matchedStateCodes = [...new Set(matchedGeometries.map(g => g.stateCode))];
-      
-      // Fetch relevant rates to join in memory
+      // Fetch all rates for supported states to map against search results in-memory
       const rates = await CircleRate.find({
-        stateCode: { $in: matchedStateCodes }
+        stateCode: { $in: ['DL', 'HR', 'UP'] }
       });
 
+      // Build rateMap standardizing Gurgaon/Gurugram names
       const rateMap = {};
       rates.forEach(r => {
         const stateKey = `state-${r.stateCode.toLowerCase()}`;
-        const distKey = `district-${r.district.toLowerCase()}`;
-        const locKey = `locality-${r.district.toLowerCase()}-${r.locality.toLowerCase()}`;
+        
+        const rawDistrict = r.district || '';
+        const distName = (rawDistrict.toLowerCase() === 'gurgaon' || rawDistrict.toLowerCase() === 'gurugram') ? 'gurugram' : rawDistrict.toLowerCase();
+        const distKey = `district-${distName}`;
+        
+        const rawLocality = r.locality || '';
+        const locKey = `locality-${distName}-${rawLocality.toLowerCase()}`;
 
         if (!rateMap[stateKey]) rateMap[stateKey] = { residential: [], commercial: [], agricultural: [], all: [] };
         if (!rateMap[distKey]) rateMap[distKey] = { residential: [], commercial: [], agricultural: [], all: [] };
@@ -58,11 +62,17 @@ export async function GET(request) {
         }
       });
 
+      // Compile matches from local geometries
       const results = matchedGeometries.map(geo => {
+        let name = geo.name;
+        if (name.toLowerCase() === 'gurgaon' || name.toLowerCase() === 'gurugram') {
+          name = 'Gurugram';
+        }
+
         let key = '';
         if (geo.level === 'state') key = `state-${geo.stateCode.toLowerCase()}`;
-        else if (geo.level === 'district') key = `district-${geo.name.toLowerCase()}`;
-        else key = `locality-${(geo.district || '').toLowerCase()}-${geo.name.toLowerCase()}`;
+        else if (geo.level === 'district') key = `district-${name.toLowerCase()}`;
+        else key = `locality-${(geo.district || '').toLowerCase()}-${name.toLowerCase()}`;
 
         const areaMap = rateMap[key] || { residential: [], commercial: [], agricultural: [], all: [] };
         const avg = areaMap.all.length ? Math.round(areaMap.all.reduce((a, b) => a + b, 0) / areaMap.all.length) : null;
@@ -71,7 +81,7 @@ export async function GET(request) {
         const agr = areaMap.agricultural.length ? Math.round(areaMap.agricultural.reduce((a, b) => a + b, 0) / areaMap.agricultural.length) : null;
 
         return {
-          name: geo.name,
+          name,
           level: geo.level,
           stateCode: geo.stateCode,
           district: geo.district || '',
@@ -106,8 +116,14 @@ export async function GET(request) {
           if (response.ok) {
             const data = await response.json();
             data.forEach(item => {
+              // Standardize name mapping
+              let name = item.name;
+              if (name.toLowerCase() === 'gurgaon' || name.toLowerCase() === 'gurugram') {
+                name = 'Gurugram';
+              }
+
               // Deduplicate results against already found local matches
-              const nameLower = item.name.toLowerCase();
+              const nameLower = name.toLowerCase();
               const isDuplicate = results.some(r => r.name.toLowerCase().includes(nameLower) || nameLower.includes(r.name.toLowerCase()));
               
               if (!isDuplicate && item.geojson && (item.geojson.type === 'Polygon' || item.geojson.type === 'MultiPolygon')) {
@@ -122,15 +138,33 @@ export async function GET(request) {
                 const isDistrict = item.class === 'boundary' && (item.type === 'administrative' || item.type === 'political');
                 const level = isDistrict ? 'district' : 'locality';
                 
+                // Determine standardized district name
+                let district = item.display_name.split(',')[1]?.trim() || '';
+                if (district.toLowerCase() === 'gurgaon' || district.toLowerCase() === 'gurugram') {
+                  district = 'Gurugram';
+                }
+
+                // Check for circle rate matches in our memory map
+                let key = '';
+                if (level === 'state') key = `state-${stateCode.toLowerCase()}`;
+                else if (level === 'district') key = `district-${name.toLowerCase()}`;
+                else key = `locality-${district.toLowerCase()}-${name.toLowerCase()}`;
+
+                const areaMap = rateMap[key] || { residential: [], commercial: [], agricultural: [], all: [] };
+                const avg = areaMap.all.length ? Math.round(areaMap.all.reduce((a, b) => a + b, 0) / areaMap.all.length) : null;
+                const res = areaMap.residential.length ? Math.round(areaMap.residential.reduce((a, b) => a + b, 0) / areaMap.residential.length) : null;
+                const com = areaMap.commercial.length ? Math.round(areaMap.commercial.reduce((a, b) => a + b, 0) / areaMap.commercial.length) : null;
+                const agr = areaMap.agricultural.length ? Math.round(areaMap.agricultural.reduce((a, b) => a + b, 0) / areaMap.agricultural.length) : null;
+
                 results.push({
-                  name: item.name,
+                  name,
                   level,
                   stateCode,
-                  district: item.display_name.split(',')[1]?.trim() || '',
-                  circleRate: null, // Signals "Coming Soon" toast
-                  residentialRate: null,
-                  commercialRate: null,
-                  agriculturalRate: null,
+                  district,
+                  circleRate: avg,
+                  residentialRate: res,
+                  commercialRate: com,
+                  agriculturalRate: agr,
                   geometry: {
                     type: item.geojson.type,
                     coordinates: item.geojson.coordinates
