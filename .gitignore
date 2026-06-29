@@ -39,3 +39,7 @@ serviceAccountKey.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local mocks/data not for production git repository
+/data/mock/New folder/
+
