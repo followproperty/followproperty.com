@@ -103,7 +103,7 @@ async function run() {
       configuration: "Plots (100 - 250 Sq. Yd.)",
       marketPrice: "₹45 Lakh - ₹1.12 Cr",
       superArea: "100 - 250",
-      projectPdf: "/Vrindavan_Project_Follow_Property.png",
+      projectPdf: "/Vrindavan_Project_Follow_Property.pdf",
       images: [],
       videos: [],
       projectSource: "upcoming",

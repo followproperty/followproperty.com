@@ -97,7 +97,7 @@ export default function FeaturedProjects() {
     fetchFeaturedProjects();
   }, []);
 
-  // Auto-play interval: rotate projects every 5 seconds
+  // Auto-play interval: rotate projects every 8 seconds
   useEffect(() => {
     if (projects.length <= visibleCount) return;
 
@@ -109,7 +109,7 @@ export default function FeaturedProjects() {
         }
         return prevIndex + 1;
       });
-    }, 5000);
+    }, 8000);
 
     return () => clearInterval(timer);
   }, [projects.length, visibleCount]);

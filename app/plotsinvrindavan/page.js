@@ -156,8 +156,8 @@ export default function VrindavanPlotsPage() {
       // Trigger brochure download programmatically if it is a brochure action
       if (actionType.toLowerCase().includes("brochure")) {
         const link = document.createElement("a");
-        link.href = "/Vrindavan_Project_Follow_Property.png";
-        link.download = "Vrindavan_Project_Follow_Property.png";
+        link.href = "/Vrindavan_Project_Follow_Property.pdf";
+        link.download = "Vrindavan_Project_Follow_Property.pdf";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -538,18 +538,18 @@ export default function VrindavanPlotsPage() {
                 </h3>
                 
                 <p className="text-xs text-brand-slate max-w-sm leading-relaxed font-semibold">
-                  Download the official project brochure and pricing flyer directly. Access the physical site map layout and official documents.
+                  Download the official project brochure and pricing PDF directly. Access the physical site map layout and official documents.
                 </p>
 
                 <button 
                   onClick={() => openInquiryModal("Brochure Section")}
                   className="btn-primary w-full max-w-xs py-3.5 text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Download size={14} /> Download Brochure Flyer
+                  <Download size={14} /> Download Brochure PDF
                 </button>
 
                 <div className="text-[10px] text-brand-slate-light font-bold">
-                  File Size: ~474 KB • PNG Image Format
+                  File Size: ~223 KB • PDF Format
                 </div>
               </div>
 
@@ -610,7 +610,7 @@ export default function VrindavanPlotsPage() {
                 </h3>
                 <p className="text-xs text-brand-slate leading-relaxed font-semibold">
                   {modalTrigger.includes("Brochure") 
-                    ? "Enter your details below to download the brochure flyer and connect with us on WhatsApp." 
+                    ? "Enter your details below to download the brochure PDF and connect with us on WhatsApp." 
                     : "Please fill out this form to connect with our advisor desk on WhatsApp."}
                 </p>
               </div>
