@@ -23,7 +23,8 @@ import {
   Loader2,
   Lock,
   GraduationCap,
-  Sparkles
+  Sparkles,
+  X
 } from "lucide-react";
 
 export default function VrindavanPlotsPage() {
@@ -33,6 +34,17 @@ export default function VrindavanPlotsPage() {
     hasPortfolio: false,
     hasWatchlist: false
   });
+
+  // Modal Inquiry State
+  const [showModal, setShowModal] = useState(false);
+  const [modalTrigger, setModalTrigger] = useState("Consultation");
+
+  const openInquiryModal = (triggerType) => {
+    setModalTrigger(triggerType);
+    setIsSuccess(false);
+    setErrorMessage("");
+    setShowModal(true);
+  };
 
 
   // Lead Form State
@@ -141,10 +153,26 @@ export default function VrindavanPlotsPage() {
       const encodedMsg = encodeURIComponent(messageText);
       const waUrl = `https://wa.me/${waNumber}?text=${encodedMsg}`;
 
+      // Trigger brochure PDF download programmatically if it is a brochure action
+      if (actionType.toLowerCase().includes("brochure")) {
+        const link = document.createElement("a");
+        link.href = "/Vrindavan_Project_Follow_Property.pdf";
+        link.download = "Vrindavan_Project_Follow_Property.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
       // Open WhatsApp after a short delay
       setTimeout(() => {
         window.open(waUrl, "_blank");
       }, 800);
+
+      // Reset modal state after short delay
+      setTimeout(() => {
+        setShowModal(false);
+        setIsSuccess(false);
+      }, 2500);
 
     } catch (err) {
       console.error("Error submitting lead:", err);
@@ -215,14 +243,12 @@ export default function VrindavanPlotsPage() {
                 >
                   <Phone size={16} /> Request Pricing Info
                 </a>
-                <a 
-                  href="/Vrindavan_Project_Follow_Property.pdf" 
-                  download="Vrindavan_Project_Follow_Property.pdf"
-                  onClick={() => handleLeadSubmit(null, false, "Brochure Download")}
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-3.5 px-7 rounded-xl border border-white/15 transition-all duration-300"
+                <button 
+                  onClick={() => openInquiryModal("Brochure Download")}
+                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-3.5 px-7 rounded-xl border border-white/15 cursor-pointer transition-all duration-300"
                 >
                   <Download size={16} /> Download Brochure
-                </a>
+                </button>
               </div>
             </div>
 
@@ -368,7 +394,7 @@ export default function VrindavanPlotsPage() {
                       id="form-name"
                       type="text" 
                       required 
-                      placeholder="e.g. Rahul Sharma"
+                      placeholder="Enter your name"
                       value={leadName}
                       onChange={(e) => setLeadName(e.target.value)}
                       className="form-input"
@@ -383,7 +409,7 @@ export default function VrindavanPlotsPage() {
                       id="form-phone"
                       type="tel" 
                       required 
-                      placeholder="e.g. +91 98765 43210"
+                      placeholder="Enter your phone number"
                       value={leadPhone}
                       onChange={(e) => setLeadPhone(e.target.value)}
                       className="form-input"
@@ -398,7 +424,7 @@ export default function VrindavanPlotsPage() {
                       id="form-city"
                       type="text" 
                       required 
-                      placeholder="e.g. Delhi NCR"
+                      placeholder="Enter your city"
                       value={leadCity}
                       onChange={(e) => setLeadCity(e.target.value)}
                       className="form-input"
@@ -515,14 +541,12 @@ export default function VrindavanPlotsPage() {
                   Download the official project brochure and pricing PDF directly. Access the physical site map layout and official documents.
                 </p>
 
-                <a 
-                  href="/Vrindavan_Project_Follow_Property.pdf" 
-                  download="Vrindavan_Project_Follow_Property.pdf"
-                  onClick={() => handleLeadSubmit(null, false, "Brochure Section")}
-                  className="btn-primary w-full max-w-xs py-3.5 text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+                <button 
+                  onClick={() => openInquiryModal("Brochure Section")}
+                  className="btn-primary w-full max-w-xs py-3.5 text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Download size={14} /> Download Brochure PDF
-                </a>
+                </button>
 
                 <div className="text-[10px] text-brand-slate-light font-bold">
                   File Size: ~236 KB • PDF Format
@@ -546,6 +570,138 @@ export default function VrindavanPlotsPage() {
           <span>Vrindavan Inquiry</span>
         </button>
       </div>
+
+      {/* Inquiry Dialog Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            {/* Modal Backdrop Click handler to close */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowModal(false)}
+              className="absolute inset-0 cursor-pointer"
+            />
+
+            {/* Modal Card */}
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="relative w-full max-w-md bg-white text-brand-navy p-6 md:p-8 rounded-3xl border border-brand-border shadow-2xl z-10 flex flex-col"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setShowModal(false)}
+                className="absolute top-4 right-4 text-brand-slate hover:text-brand-navy cursor-pointer bg-brand-bg-alt hover:bg-brand-border p-1.5 rounded-full transition-colors duration-200"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="text-center space-y-2 mb-6">
+                <div className="w-12 h-12 rounded-full bg-brand-blue-bg text-brand-blue border border-brand-blue/10 flex items-center justify-center mx-auto mb-2">
+                  <Download size={22} />
+                </div>
+                <h3 className="text-lg font-extrabold text-brand-navy m-0">
+                  {modalTrigger.includes("Brochure") ? "Download Brochure" : "Request Consultation"}
+                </h3>
+                <p className="text-xs text-brand-slate leading-relaxed font-semibold">
+                  {modalTrigger.includes("Brochure") 
+                    ? "Enter your details below to download the brochure PDF and connect with us on WhatsApp." 
+                    : "Please fill out this form to connect with our advisor desk on WhatsApp."}
+                </p>
+              </div>
+
+              {isSuccess ? (
+                <div className="text-center py-6 space-y-4 animate-in fade-in duration-200">
+                  <div className="w-12 h-12 rounded-full bg-brand-emerald-bg text-brand-emerald border border-brand-emerald/10 flex items-center justify-center mx-auto shadow-sm">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-extrabold text-brand-navy m-0">Inquiry Saved!</h4>
+                    <p className="text-xs text-brand-slate mt-1 leading-relaxed font-semibold">
+                      Redirecting to WhatsApp and downloading PDF...
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={(e) => handleLeadSubmit(e, true, modalTrigger)} className="space-y-4">
+                  {errorMessage && (
+                    <div className="p-3 bg-brand-red-bg border border-brand-red-border text-brand-red text-xs rounded-xl font-medium animate-in slide-in-from-top-1">
+                      {errorMessage}
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="modal-name" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
+                      Your Name
+                    </label>
+                    <input 
+                      id="modal-name"
+                      type="text" 
+                      required 
+                      placeholder="Enter your name"
+                      value={leadName}
+                      onChange={(e) => setLeadName(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="modal-phone" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
+                      Phone Number
+                    </label>
+                    <input 
+                      id="modal-phone"
+                      type="tel" 
+                      required 
+                      placeholder="Enter your phone number"
+                      value={leadPhone}
+                      onChange={(e) => setLeadPhone(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="modal-city" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
+                      Your City
+                    </label>
+                    <input 
+                      id="modal-city"
+                      type="text" 
+                      required 
+                      placeholder="Enter your city"
+                      value={leadCity}
+                      onChange={(e) => setLeadCity(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full btn-primary py-3.5 text-xs uppercase tracking-wider mt-4 flex items-center justify-center gap-1.5 shadow-brand-blue"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        {modalTrigger.includes("Brochure") ? "Download & Chat" : "Submit Inquiry"} <ArrowRight size={13} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <Footer />
