@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useToast } from "@/context/ToastContext";
 import { 
   MapContainer, 
   TileLayer, 
   GeoJSON, 
-  useMap 
+  useMap,
+  ZoomControl 
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { 
@@ -17,7 +19,9 @@ import {
   Info,
   Navigation,
   Loader2,
-  TrendingDown
+  TrendingDown,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 // Helper component to dynamically change map bounds when drilling down
@@ -41,7 +45,34 @@ function getColor(rate) {
        : "#059669";               // Emerald-600 (Low/Affordable)
 }
 
+// Bounding box helper for Leaflet fitBounds
+function getBoundsFromGeometry(geometry) {
+  if (!geometry || !geometry.coordinates) return null;
+  let coords = [];
+  if (geometry.type === 'Polygon') {
+    coords = geometry.coordinates[0];
+  } else if (geometry.type === 'MultiPolygon') {
+    coords = geometry.coordinates.flatMap(p => p[0]);
+  }
+  
+  if (coords.length === 0) return null;
+  
+  let minLat = Infinity, maxLat = -Infinity;
+  let minLng = Infinity, maxLng = -Infinity;
+  
+  coords.forEach(([lng, lat]) => {
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+  });
+  
+  return [[minLat, minLng], [maxLat, maxLng]];
+}
+
 export default function CircleRatesMap() {
+  const { showToast } = useToast();
+  const searchTimeoutRef = useRef(null);
   const [level, setLevel] = useState("state");
   const [stateCode, setStateCode] = useState("");
   const [district, setDistrict] = useState("");
@@ -62,8 +93,22 @@ export default function CircleRatesMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   
+  // Mobile drawer expanded state
+  const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
+  const [showMobileUI, setShowMobileUI] = useState(true);
+
+  // Auto-expand drawer and restore UI when selected area changes on mobile
+  useEffect(() => {
+    if (selectedArea) {
+      setIsDrawerExpanded(true);
+      setShowMobileUI(true);
+    }
+  }, [selectedArea]);
+  
   // Fetch GeoJSON with Rates
+  const requestVersion = useRef(0);
   const fetchData = async (currentLevel, currentSubState = "", currentSubDistrict = "") => {
+    const version = ++requestVersion.current;
     setLoading(true);
     setError("");
     try {
@@ -74,16 +119,21 @@ export default function CircleRatesMap() {
       const res = await fetch(url);
       const resData = await res.json();
       
+      if (version !== requestVersion.current) return;
+      
       if (resData.success) {
         setGeojsonData(resData.data);
       } else {
         setError(resData.error || "Failed to load map data.");
       }
     } catch (err) {
+      if (version !== requestVersion.current) return;
       console.error(err);
       setError("Failed to connect to the rates server.");
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -147,6 +197,11 @@ export default function CircleRatesMap() {
     const props = feature.properties;
     const layerBounds = layer.getBounds();
     
+    // Ignore clicks if the layer level does not match the active level state (prevents race conditions)
+    if (props.level !== level) {
+      return;
+    }
+    
     if (level === "state") {
       setLevel("district");
       setStateCode(props.stateCode);
@@ -206,34 +261,92 @@ export default function CircleRatesMap() {
     }
   };
 
-  // Search handler
-  const handleSearch = async (e) => {
+  // Search handler (Global autocomplete with debouncing)
+  const handleSearch = (e) => {
     const q = e.target.value;
     setSearchQuery(q);
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
     
     if (q.trim().length < 2) {
       setSearchResults([]);
       return;
     }
 
-    try {
-      // Find matching items from current geojson features
-      if (geojsonData && geojsonData.features) {
-        const matches = geojsonData.features.filter(f => 
-          f.properties.name.toLowerCase().includes(q.toLowerCase())
-        ).map(f => f.properties);
-        setSearchResults(matches.slice(0, 5));
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/circle-rates?q=${encodeURIComponent(q.trim())}`);
+        const resData = await res.json();
+        if (resData.success) {
+          setSearchResults(resData.data);
+        }
+      } catch (err) {
+        console.error("Global search failed:", err);
       }
-    } catch (err) {
-      console.error(err);
-    }
+    }, 300);
   };
 
-  // Select item from search results
+  // Select item from search results (google maps zoom / flight & toaster coming soon fallback)
   const selectSearchResult = (item) => {
-    setSelectedArea(item);
     setSearchQuery("");
     setSearchResults([]);
+
+    const boundingBox = getBoundsFromGeometry(item.geometry);
+    
+    // Zoom and pan the map to coordinates
+    if (boundingBox) {
+      setBounds(boundingBox);
+    }
+
+    // Set level and parameter state to match search item
+    setLevel(item.level);
+    setStateCode(item.stateCode);
+
+    if (item.level === "state") {
+      setDistrict("");
+      setBreadcrumbs([
+        { name: "Delhi NCR", level: "state", bounds: [[28.2, 76.6], [29.0, 77.7]] },
+        { name: item.name, level: "state", stateCode: item.stateCode, bounds: boundingBox || [[28.2, 76.6], [29.0, 77.7]] }
+      ]);
+      fetchData("state"); // Load state geometries
+    } else if (item.level === "district") {
+      setDistrict(item.name);
+      setBreadcrumbs([
+        { name: "Delhi NCR", level: "state", bounds: [[28.2, 76.6], [29.0, 77.7]] },
+        { name: item.name, level: "district", stateCode: item.stateCode, bounds: boundingBox || [[28.2, 76.6], [29.0, 77.7]] }
+      ]);
+      fetchData("district", item.stateCode); // Load districts of state
+    } else if (item.level === "locality") {
+      setDistrict(item.district);
+      const stateName = item.stateCode === 'DL' ? 'Delhi' : item.stateCode === 'HR' ? 'Haryana' : 'Uttar Pradesh';
+      setBreadcrumbs([
+        { name: "Delhi NCR", level: "state", bounds: [[28.2, 76.6], [29.0, 77.7]] },
+        { name: stateName, level: "district", stateCode: item.stateCode, bounds: [[28.2, 76.6], [29.0, 77.7]] },
+        { name: item.name, level: "locality", stateCode: item.stateCode, district: item.district, bounds: boundingBox || [[28.2, 76.6], [29.0, 77.7]] }
+      ]);
+      fetchData("locality", item.stateCode, item.district); // Load localities in district
+    }
+
+    // Formatted selected statistics
+    const formattedSelection = {
+      name: item.name,
+      level: item.level,
+      stateCode: item.stateCode,
+      district: item.district,
+      circleRate: item.circleRate,
+      residentialRate: item.residentialRate,
+      commercialRate: item.commercialRate,
+      agriculturalRate: item.agriculturalRate,
+      geometry: item.geometry
+    };
+    setSelectedArea(formattedSelection);
+
+    // If rate is missing, fire the site toast notification
+    if (!item.circleRate) {
+      showToast(`Coming Soon: Circle rate for ${item.name} is currently being verified.`, "info", "Coming Soon");
+    }
   };
 
   // Leaflet Polygon Styling & Hover triggers
@@ -279,10 +392,10 @@ export default function CircleRatesMap() {
   const activeStats = selectedArea || hoveredArea;
 
   return (
-    <div className="flex flex-col md:flex-row h-[650px] w-full overflow-hidden font-sans rounded-2xl bg-white border border-brand-border shadow-brand">
+    <div className="relative flex flex-col md:flex-row h-[600px] md:h-[650px] w-full overflow-hidden font-sans rounded-2xl bg-white border border-brand-border shadow-brand">
       
-      {/* 1. SIDEBAR STATS & BREADCRUMBS */}
-      <div className="w-full md:w-[380px] bg-white border-b md:border-b-0 md:border-r border-brand-border flex flex-col z-10 shadow-sm shrink-0">
+      {/* 1. DESKTOP SIDEBAR STATS & BREADCRUMBS (Hidden on mobile) */}
+      <div className="hidden md:flex md:w-[380px] bg-white border-r border-brand-border flex-col z-10 shadow-sm shrink-0">
         
         {/* Search & Breadcrumbs */}
         <div className="p-4 border-b border-brand-border bg-brand-bg/50">
@@ -292,7 +405,7 @@ export default function CircleRatesMap() {
             </span>
             <input
               type="text"
-              placeholder={`Search ${level}s...`}
+              placeholder="Search states, districts, localities..."
               value={searchQuery}
               onChange={handleSearch}
               className="w-full pl-9 pr-4 py-2 text-sm border border-brand-border-mid rounded-xl focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue bg-white shadow-xs"
@@ -359,7 +472,7 @@ export default function CircleRatesMap() {
               <div className="bg-brand-bg border border-brand-border rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-xs">
                 <span className="text-xs font-semibold text-brand-slate">Average Circle Rate</span>
                 <span className="text-3xl font-extrabold text-brand-navy mt-1 tracking-tight">
-                  {activeStats.circleRate ? `₹${activeStats.circleRate.toLocaleString()}` : "N/A"}
+                  {activeStats.circleRate ? `₹${activeStats.circleRate.toLocaleString()}` : "Coming Soon"}
                 </span>
                 <span className="text-[10px] font-bold text-brand-slate-light uppercase mt-0.5">per Sq. Ft.</span>
               </div>
@@ -445,34 +558,16 @@ export default function CircleRatesMap() {
         )}
       </div>
 
-      {/* 2. MAP COMPONENT DISPLAY */}
+      {/* 2. MAP COMPONENT & MOBILE INTERFACES */}
       <div className="flex-1 h-full w-full relative z-0 bg-brand-bg-alt">
-        {/* Loading overlay */}
-        {loading && (
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-xs flex items-center justify-center z-100 transition-opacity">
-            <div className="bg-white border border-brand-border shadow-brand-lg px-6 py-4 rounded-2xl flex items-center gap-3">
-              <Loader2 className="animate-spin text-brand-blue" size={20} />
-              <span className="text-sm font-bold text-brand-navy">Loading map geometries...</span>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-100 w-full max-w-md px-4">
-            <div className="bg-red-50 border border-brand-red-border text-brand-red px-4 py-3 rounded-xl flex items-center gap-3 shadow-md">
-              <Info size={16} className="shrink-0" />
-              <span className="text-xs font-semibold">{error}</span>
-            </div>
-          </div>
-        )}
-
         <MapContainer
           center={[28.6139, 77.2090]}
           zoom={9}
           className="h-full w-full"
-          zoomControl={true}
+          zoomControl={false}
           style={{ background: "#F4F3EF" }}
         >
+          <ZoomControl position="topright" />
           <ChangeMapView bounds={bounds} />
           
           <TileLayer
@@ -488,10 +583,217 @@ export default function CircleRatesMap() {
               onEachFeature={onEachFeature}
             />
           )}
+
+          {selectedArea && selectedArea.geometry && (
+            <GeoJSON
+              key={`selected-${selectedArea.name}-${selectedArea.level}`}
+              data={{
+                type: 'Feature',
+                properties: selectedArea,
+                geometry: selectedArea.geometry
+              }}
+              style={{
+                fillColor: getColor(selectedArea.circleRate),
+                weight: 3.5,
+                opacity: 0.95,
+                color: "#2563EB",
+                fillOpacity: 0.45
+              }}
+            />
+          )}
         </MapContainer>
 
-        {/* Floating Legends */}
-        <div className="absolute bottom-4 right-4 bg-white/94 backdrop-blur-md border border-brand-border rounded-xl p-3.5 shadow-brand-md z-45 text-xs w-[180px]">
+        {/* Mobile UI Visibility Toggle Button (Visible only on mobile) */}
+        <button
+          onClick={() => setShowMobileUI(!showMobileUI)}
+          className="md:hidden absolute top-[100px] right-3 z-[1010] bg-white border border-brand-border rounded-xl p-2.5 shadow-md flex items-center justify-center text-brand-navy hover:bg-brand-bg transition-all"
+          title={showMobileUI ? "Hide Map UI" : "Show Map UI"}
+        >
+          {showMobileUI ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+
+        {/* Mobile Header: Floating Search & Breadcrumbs (Visible only on mobile) */}
+        <div className={`absolute top-3 left-3 right-3 z-[1010] bg-white/94 backdrop-blur-md border border-brand-border rounded-2xl p-3 shadow-md md:hidden transition-all duration-300 ${
+          showMobileUI ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-4 pointer-events-none"
+        }`}>
+          <div className="relative mb-2">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-brand-slate-light">
+              <Search size={15} />
+            </span>
+            <input
+              type="text"
+              placeholder="Search states, districts, localities..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="w-full pl-9 pr-4 py-2 text-xs border border-brand-border-mid rounded-xl focus:outline-none focus:border-brand-blue bg-white shadow-xs"
+            />
+            
+            {/* Mobile Search Results */}
+            {searchResults.length > 0 && (
+              <div className="absolute left-0 right-0 mt-1 bg-white border border-brand-border rounded-xl shadow-lg z-[1020] overflow-hidden">
+                {searchResults.map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => selectSearchResult(item)}
+                    className="w-full text-left px-3 py-2 text-xs hover:bg-brand-bg-alt flex flex-col border-b border-brand-border last:border-0"
+                  >
+                    <span className="font-semibold text-brand-navy">{item.name}</span>
+                    <span className="text-[9px] text-brand-slate-light uppercase tracking-wider">{item.district || item.stateCode}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Mobile Breadcrumbs */}
+          <div className="flex items-center flex-wrap gap-1 text-[10px]">
+            {breadcrumbs.map((crumb, idx) => (
+              <React.Fragment key={idx}>
+                {idx > 0 && <span className="text-brand-slate-light">/</span>}
+                <button
+                  onClick={() => handleBreadcrumbClick(crumb, idx)}
+                  className={`hover:text-brand-blue font-semibold transition-colors ${
+                    idx === breadcrumbs.length - 1 
+                      ? "text-brand-navy font-bold pointer-events-none" 
+                      : "text-brand-slate"
+                  }`}
+                >
+                  {crumb.name}
+                </button>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Loading overlay */}
+        {loading && (
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-xs flex items-center justify-center z-[2000] transition-opacity">
+            <div className="bg-white border border-brand-border shadow-brand-lg px-6 py-4 rounded-2xl flex items-center gap-3">
+              <Loader2 className="animate-spin text-brand-blue" size={20} />
+              <span className="text-sm font-bold text-brand-navy">Loading map geometries...</span>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[2000] w-full max-w-md px-4">
+            <div className="bg-red-50 border border-brand-red-border text-brand-red px-4 py-3 rounded-xl flex items-center gap-3 shadow-md">
+              <Info size={16} className="shrink-0" />
+              <span className="text-xs font-semibold">{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Bottom Sheet Drawer (Visible only on mobile) */}
+        <div 
+          className={`absolute bottom-0 left-0 right-0 z-[1010] bg-white border-t border-brand-border rounded-t-2xl shadow-brand-lg transition-all duration-300 ease-in-out md:hidden flex flex-col ${
+            showMobileUI 
+              ? (isDrawerExpanded ? "h-[330px] translate-y-0" : "h-[80px] translate-y-0") 
+              : "h-[0px] translate-y-full pointer-events-none"
+          }`}
+        >
+          {/* Drawer Drag Bar Handle & Click Toggle */}
+          <div 
+            className="w-full py-2 flex flex-col items-center justify-center cursor-pointer border-b border-brand-border/30 hover:bg-brand-bg/20 transition-colors"
+            onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
+          >
+            <div className="w-12 h-1.5 bg-brand-slate-light/35 rounded-full mb-1" />
+            
+            {activeStats ? (
+              <div className="flex items-center justify-between w-full px-4 mt-0.5">
+                <div className="text-left">
+                  <span className="text-[8px] uppercase font-bold text-brand-blue tracking-wider">{activeStats.level} details</span>
+                  <h3 className="text-sm font-extrabold text-brand-navy m-0 leading-tight truncate max-w-[170px]">{activeStats.name}</h3>
+                </div>
+                <div className="text-right flex flex-col justify-center">
+                  <span className="text-[9px] text-brand-slate-light leading-none font-bold uppercase tracking-wider">Avg Rate</span>
+                  <span className="text-base font-extrabold text-brand-navy mt-0.5">
+                    {activeStats.circleRate ? `₹${activeStats.circleRate.toLocaleString()}` : "Coming Soon"}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <span className="text-[10px] text-brand-slate font-bold uppercase tracking-wider py-1">
+                Tap on any region to view rates
+              </span>
+            )}
+          </div>
+
+          {/* Drawer Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-6 text-brand-slate">
+                <Loader2 className="animate-spin text-brand-blue mb-1" size={24} />
+                <span className="text-xs font-semibold">Loading data...</span>
+              </div>
+            ) : activeStats ? (
+              <>
+                {/* 2-Column Stats Grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="border border-brand-border rounded-xl p-2.5 flex justify-between items-center bg-brand-bg/40">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] text-brand-slate-light uppercase font-bold tracking-wider">Residential</span>
+                      <span className="text-xs font-extrabold text-brand-navy mt-0.5">
+                        {activeStats.residentialRate ? `₹${activeStats.residentialRate.toLocaleString()}` : "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border border-brand-border rounded-xl p-2.5 flex justify-between items-center bg-brand-bg/40">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] text-brand-slate-light uppercase font-bold tracking-wider">Commercial</span>
+                      <span className="text-xs font-extrabold text-brand-navy mt-0.5">
+                        {activeStats.commercialRate ? `₹${activeStats.commercialRate.toLocaleString()}` : "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {activeStats.agriculturalRate !== undefined && activeStats.agriculturalRate !== null && (
+                    <div className="border border-brand-border rounded-xl p-2.5 flex justify-between items-center col-span-2 bg-brand-bg/40">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-brand-slate-light uppercase font-bold tracking-wider">Agricultural</span>
+                        <span className="text-xs font-extrabold text-brand-navy mt-0.5">
+                          {activeStats.agriculturalRate ? `₹${activeStats.agriculturalRate.toLocaleString()}` : "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Level drilldown indicator help */}
+                {level !== "locality" && (
+                  <div className="bg-brand-blue-bg border border-brand-blue-border rounded-xl p-2 flex gap-2 items-center text-[10px] text-brand-blue-dark">
+                    <Navigation className="shrink-0 animate-bounce-slow" size={12} />
+                    <span>Tap on this region on the map to zoom in!</span>
+                  </div>
+                )}
+
+                {/* Back Button (Mobile) */}
+                {breadcrumbs.length > 1 && (
+                  <button
+                    onClick={handleBack}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-brand-navy hover:text-white bg-brand-bg hover:bg-brand-navy border border-brand-border-mid rounded-xl transition-all shadow-xs"
+                  >
+                    <ArrowLeft size={12} />
+                    Go Back One Level
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center py-6 text-brand-slate gap-2">
+                <div className="w-10 h-10 rounded-full bg-brand-bg border border-brand-border flex items-center justify-center text-brand-slate-light">
+                  <Info size={18} />
+                </div>
+                <h4 className="font-bold text-brand-navy text-xs m-0">Interactive Circle Rates Map</h4>
+                <p className="text-[10px] text-brand-slate max-w-[220px] m-0">
+                  Tap on any state, district, or sector polygon on the map to see local circle rate intelligence.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Floating Legends (Desktop only) */}
+        <div className="hidden md:block absolute bottom-4 right-4 bg-white/94 backdrop-blur-md border border-brand-border rounded-xl p-3.5 shadow-brand-md z-[1010] text-xs w-[180px]">
           <h4 className="font-bold text-brand-navy mb-2 uppercase tracking-wider text-[9px]">Rate Bracket / sqft</h4>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">

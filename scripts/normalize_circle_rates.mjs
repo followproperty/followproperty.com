@@ -89,7 +89,7 @@ async function run() {
     let hrUpsertData = [];
     for (const rec of hrRecords) {
       // Resolve name
-      const localityName = rec.locality || rec.zone || rec.ward;
+      const localityName = rec.locality || rec.zone || rec.ward || rec.tehsil;
       if (!localityName) continue;
 
       // Resolve rate

@@ -8,6 +8,148 @@ export async function GET(request) {
     await connectToDatabase();
     
     const { searchParams } = new URL(request.url);
+    const q = searchParams.get('q');
+    
+    // Global search query
+    if (q) {
+      const queryStr = q.trim();
+      if (!queryStr) {
+        return NextResponse.json({ success: true, data: [] }, { status: 200 });
+      }
+
+      // Search matching geometries across all levels
+      const matchedGeometries = await Geometry.find({
+        name: { $regex: new RegExp(queryStr, 'i') }
+      }).limit(8);
+
+      const matchedStateCodes = [...new Set(matchedGeometries.map(g => g.stateCode))];
+      
+      // Fetch relevant rates to join in memory
+      const rates = await CircleRate.find({
+        stateCode: { $in: matchedStateCodes }
+      });
+
+      const rateMap = {};
+      rates.forEach(r => {
+        const stateKey = `state-${r.stateCode.toLowerCase()}`;
+        const distKey = `district-${r.district.toLowerCase()}`;
+        const locKey = `locality-${r.district.toLowerCase()}-${r.locality.toLowerCase()}`;
+
+        if (!rateMap[stateKey]) rateMap[stateKey] = { residential: [], commercial: [], agricultural: [], all: [] };
+        if (!rateMap[distKey]) rateMap[distKey] = { residential: [], commercial: [], agricultural: [], all: [] };
+        if (!rateMap[locKey]) rateMap[locKey] = { residential: [], commercial: [], agricultural: [], all: [] };
+
+        rateMap[stateKey].all.push(r.circleRate);
+        rateMap[distKey].all.push(r.circleRate);
+        rateMap[locKey].all.push(r.circleRate);
+
+        if (r.landUse === 'Residential') {
+          rateMap[stateKey].residential.push(r.circleRate);
+          rateMap[distKey].residential.push(r.circleRate);
+          rateMap[locKey].residential.push(r.circleRate);
+        } else if (r.landUse === 'Commercial') {
+          rateMap[stateKey].commercial.push(r.circleRate);
+          rateMap[distKey].commercial.push(r.circleRate);
+          rateMap[locKey].commercial.push(r.circleRate);
+        } else if (r.landUse === 'Agricultural') {
+          rateMap[stateKey].agricultural.push(r.circleRate);
+          rateMap[distKey].agricultural.push(r.circleRate);
+          rateMap[locKey].agricultural.push(r.circleRate);
+        }
+      });
+
+      const results = matchedGeometries.map(geo => {
+        let key = '';
+        if (geo.level === 'state') key = `state-${geo.stateCode.toLowerCase()}`;
+        else if (geo.level === 'district') key = `district-${geo.name.toLowerCase()}`;
+        else key = `locality-${(geo.district || '').toLowerCase()}-${geo.name.toLowerCase()}`;
+
+        const areaMap = rateMap[key] || { residential: [], commercial: [], agricultural: [], all: [] };
+        const avg = areaMap.all.length ? Math.round(areaMap.all.reduce((a, b) => a + b, 0) / areaMap.all.length) : null;
+        const res = areaMap.residential.length ? Math.round(areaMap.residential.reduce((a, b) => a + b, 0) / areaMap.residential.length) : null;
+        const com = areaMap.commercial.length ? Math.round(areaMap.commercial.reduce((a, b) => a + b, 0) / areaMap.commercial.length) : null;
+        const agr = areaMap.agricultural.length ? Math.round(areaMap.agricultural.reduce((a, b) => a + b, 0) / areaMap.agricultural.length) : null;
+
+        return {
+          name: geo.name,
+          level: geo.level,
+          stateCode: geo.stateCode,
+          district: geo.district || '',
+          circleRate: avg,
+          residentialRate: res,
+          commercialRate: com,
+          agriculturalRate: agr,
+          geometry: {
+            type: geo.geometry.type,
+            coordinates: geo.geometry.coordinates
+          }
+        };
+      });
+
+      // 2. Fallback to OpenStreetMap Nominatim Geocoder if local database returns insufficient results
+      if (results.length < 5) {
+        try {
+          const queryEncoded = encodeURIComponent(queryStr);
+          const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${queryEncoded}&format=json&countrycodes=in&limit=5&polygon_geojson=1`;
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5 seconds timeout
+          
+          const response = await fetch(nominatimUrl, {
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'FollowPropertyCircleRates/1.0 (contact@followproperty.com)'
+            }
+          });
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const data = await response.json();
+            data.forEach(item => {
+              // Deduplicate results against already found local matches
+              const nameLower = item.name.toLowerCase();
+              const isDuplicate = results.some(r => r.name.toLowerCase().includes(nameLower) || nameLower.includes(r.name.toLowerCase()));
+              
+              if (!isDuplicate && item.geojson && (item.geojson.type === 'Polygon' || item.geojson.type === 'MultiPolygon')) {
+                // Determine appropriate state code from display_name (e.g. "Ballia, Uttar Pradesh, India" -> "UP")
+                const displayName = item.display_name || '';
+                let stateCode = 'IN'; // National fallback default
+                if (displayName.includes('Uttar Pradesh')) stateCode = 'UP';
+                else if (displayName.includes('Delhi')) stateCode = 'DL';
+                else if (displayName.includes('Haryana')) stateCode = 'HR';
+                
+                // Determine level (boundary class -> district / administrative city)
+                const isDistrict = item.class === 'boundary' && (item.type === 'administrative' || item.type === 'political');
+                const level = isDistrict ? 'district' : 'locality';
+                
+                results.push({
+                  name: item.name,
+                  level,
+                  stateCode,
+                  district: item.display_name.split(',')[1]?.trim() || '',
+                  circleRate: null, // Signals "Coming Soon" toast
+                  residentialRate: null,
+                  commercialRate: null,
+                  agriculturalRate: null,
+                  geometry: {
+                    type: item.geojson.type,
+                    coordinates: item.geojson.coordinates
+                  }
+                });
+              }
+            });
+          }
+        } catch (nErr) {
+          console.error("OSM Nominatim geocoding failed or timed out:", nErr.message);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: results
+      }, { status: 200 });
+    }
+
     const level = searchParams.get('level') || 'state';
     const stateCode = searchParams.get('stateCode');
     const district = searchParams.get('district');
