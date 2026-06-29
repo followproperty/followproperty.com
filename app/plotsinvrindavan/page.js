@@ -14,7 +14,6 @@ import {
   Activity, 
   Phone, 
   Calendar, 
-  Calculator, 
   Download, 
   BadgePercent, 
   CheckCircle2, 
@@ -35,9 +34,6 @@ export default function VrindavanPlotsPage() {
     hasWatchlist: false
   });
 
-  // Plot Estimator State
-  const [plotSize, setPlotSize] = useState(133);
-  const [gender, setGender] = useState("male"); // male (7%) or female (6%)
 
   // Lead Form State
   const [leadName, setLeadName] = useState("");
@@ -102,29 +98,6 @@ export default function VrindavanPlotsPage() {
     return () => unsubscribe();
   }, []);
 
-  // Price Calculations
-  const baseRate = 45000; // ₹45,000 per Sq. Yd.
-  const gstRate = 0.18; // 18% GST
-  const registrationRate = gender === "male" ? 0.07 : 0.06;
-
-  const baseCost = plotSize * baseRate;
-  const gstCost = baseCost * gstRate;
-  const regCost = baseCost * registrationRate;
-  const totalCost = baseCost + gstCost + regCost;
-
-  // Formatter for Currency
-  const formatINR = (amount) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const formatLakhs = (amount) => {
-    const lakhs = amount / 100000;
-    return `₹${lakhs.toFixed(2)} Lakhs`;
-  };
 
   // Submit Lead
   const handleLeadSubmit = async (e, directAction = false, actionType = "Consultation") => {
@@ -164,7 +137,7 @@ export default function VrindavanPlotsPage() {
 
       // WhatsApp Redirect URL construction
       const waNumber = "918796708866";
-      const messageText = `Hi! I am interested in the Vrindavan Plotting Project. My details:\nName: ${leadName}\nPhone: ${leadPhone}\nCity: ${leadCity}\nInterested Plot Size: ${plotSize} Sq. Yds. (${(plotSize * 9).toFixed(0)} Sq. Ft.)\nEstimated Budget: ${formatLakhs(totalCost)}\nRequesting: ${actionType}`;
+      const messageText = `Hi! I am interested in the Vrindavan Plotting Project. My details:\nName: ${leadName}\nPhone: ${leadPhone}\nCity: ${leadCity}\nRequesting: ${actionType}`;
       const encodedMsg = encodeURIComponent(messageText);
       const waUrl = `https://wa.me/${waNumber}?text=${encodedMsg}`;
 
@@ -235,13 +208,12 @@ export default function VrindavanPlotsPage() {
                 ))}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <a 
-                  href="#calculator" 
+                  href="#inquire" 
                   className="inline-flex items-center justify-center gap-2 bg-brand-blue hover:bg-brand-blue-deep text-white font-bold py-3.5 px-7 rounded-xl shadow-brand-blue transition-all duration-300"
                 >
-                  <Calculator size={16} /> Cost Calculator
+                  <Phone size={16} /> Request Pricing Info
                 </a>
                 <a 
                   href="/Vrindavan_Project_Follow_Property.pdf" 
@@ -341,215 +313,116 @@ export default function VrindavanPlotsPage() {
           </div>
         </section>
 
-        {/* INTERACTIVE ESTIMATOR & LEAD CAPTURE */}
-        <section id="calculator" className="py-16 bg-brand-bg border-y border-brand-border">
+        {/* LEAD CAPTURE FORM SECTION */}
+        <section id="inquire" className="py-16 bg-brand-bg border-y border-brand-border">
           <div className="max-w-[1200px] mx-auto px-6">
             <div className="text-center max-w-2xl mx-auto mb-12">
-              <span className="badge-amber mb-3">Live Valuation</span>
+              <span className="badge-amber mb-3">Get Quote</span>
               <h2 className="text-3xl font-extrabold tracking-tight text-brand-navy">
-                Interactive Plot Cost Estimator
+                Request Pricing & Consultation
               </h2>
               <p className="text-sm text-brand-slate mt-2 leading-relaxed">
-                Slide to configure your custom plot size, select registration preferences, and see immediate estimated cost structures.
+                Fill out the short form below to check premium plot inventory, detailed costing options, and receive direct updates on WhatsApp.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
-              
-              {/* Calculator Panel */}
-              <div className="lg:col-span-7 bg-white p-6 md:p-8 rounded-3xl border border-brand-border shadow-brand flex flex-col justify-between">
-                <div>
-                  <h3 className="text-lg font-extrabold text-brand-navy mb-6 flex items-center gap-2">
-                    <Calculator className="text-brand-blue" size={18} />
-                    Adjust Your Configuration
-                  </h3>
+            <div className="max-w-xl mx-auto bg-white p-6 md:p-8 rounded-3xl border border-brand-border shadow-brand">
+              <h3 className="text-lg font-extrabold text-brand-navy mb-2 tracking-tight text-center">
+                Unlock Exclusive Inventory
+              </h3>
+              <p className="text-xs text-brand-slate text-center max-w-sm mx-auto mb-6 leading-relaxed font-semibold">
+                Share your details to receive the official pricing brochure, premium unit allocations, and connect directly with a certified property advisor.
+              </p>
 
-                  {/* Slider Control */}
-                  <div className="space-y-4 mb-8">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-brand-navy uppercase tracking-wider">Plot Area Size</span>
-                      <span className="text-lg font-extrabold text-brand-blue">
-                        {plotSize} <span className="text-xs text-brand-slate font-medium">Sq. Yds. ({(plotSize * 9).toFixed(0)} Sq. Ft.)</span>
-                      </span>
+              {isSuccess ? (
+                <div className="text-center py-8 space-y-4 animate-in fade-in duration-200">
+                  <div className="w-12 h-12 rounded-full bg-brand-emerald-bg text-brand-emerald border border-brand-emerald/10 flex items-center justify-center mx-auto shadow-sm">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-extrabold text-brand-navy m-0">Inquiry Saved!</h4>
+                    <p className="text-xs text-brand-slate mt-1 leading-relaxed font-semibold">
+                      Redirecting you to our advisory desk on WhatsApp to share unit maps...
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsSuccess(false)}
+                    className="btn-secondary py-2 text-xs"
+                  >
+                    Fill Form Again
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={(e) => handleLeadSubmit(e, true, "Quote Request")} className="space-y-4">
+                  {errorMessage && (
+                    <div className="p-3 bg-brand-red-bg border border-brand-red-border text-brand-red text-xs rounded-xl font-medium animate-in slide-in-from-top-1">
+                      {errorMessage}
                     </div>
-                    
+                  )}
+
+                  <div>
+                    <label htmlFor="form-name" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
+                      Your Name
+                    </label>
                     <input 
-                      type="range" 
-                      min="100" 
-                      max="250" 
-                      step="5"
-                      value={plotSize}
-                      onChange={(e) => setPlotSize(parseInt(e.target.value))}
-                      className="w-full h-2 bg-brand-bg-alt rounded-lg appearance-none cursor-pointer accent-brand-blue"
+                      id="form-name"
+                      type="text" 
+                      required 
+                      placeholder="e.g. Rahul Sharma"
+                      value={leadName}
+                      onChange={(e) => setLeadName(e.target.value)}
+                      className="form-input"
                     />
-                    
-                    <div className="flex justify-between text-[10px] text-brand-slate-light font-bold uppercase tracking-wider">
-                      <span>Min: 100 Sq. Yd.</span>
-                      <span>Default: 133 Sq. Yd.</span>
-                      <span>Max: 250 Sq. Yd.</span>
-                    </div>
                   </div>
 
-                  {/* Gender Selector (Registration Charges Differ) */}
-                  <div className="space-y-3 mb-8">
-                    <span className="text-xs font-bold text-brand-navy uppercase tracking-wider block">Registration Preference</span>
-                    <div className="grid grid-cols-2 gap-4">
-                      <label className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${
-                        gender === "male" 
-                          ? "border-brand-blue bg-brand-blue-bg text-brand-blue font-bold" 
-                          : "border-brand-border bg-white text-brand-slate hover:bg-brand-bg-alt"
-                      }`}>
-                        <input 
-                          type="radio" 
-                          name="gender" 
-                          value="male" 
-                          checked={gender === "male"} 
-                          onChange={() => setGender("male")}
-                          className="sr-only"
-                        />
-                        <span className="text-xs">Male Buyer (7%)</span>
-                      </label>
+                  <div>
+                    <label htmlFor="form-phone" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
+                      Phone Number
+                    </label>
+                    <input 
+                      id="form-phone"
+                      type="tel" 
+                      required 
+                      placeholder="e.g. +91 98765 43210"
+                      value={leadPhone}
+                      onChange={(e) => setLeadPhone(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
 
-                      <label className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${
-                        gender === "female" 
-                          ? "border-brand-blue bg-brand-blue-bg text-brand-blue font-bold" 
-                          : "border-brand-border bg-white text-brand-slate hover:bg-brand-bg-alt"
-                      }`}>
-                        <input 
-                          type="radio" 
-                          name="gender" 
-                          value="female" 
-                          checked={gender === "female"} 
-                          onChange={() => setGender("female")}
-                          className="sr-only"
-                        />
-                        <span className="text-xs">Female Buyer (6%)</span>
-                      </label>
-                    </div>
+                  <div>
+                    <label htmlFor="form-city" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
+                      Your City
+                    </label>
+                    <input 
+                      id="form-city"
+                      type="text" 
+                      required 
+                      placeholder="e.g. Delhi NCR"
+                      value={leadCity}
+                      onChange={(e) => setLeadCity(e.target.value)}
+                      className="form-input"
+                    />
                   </div>
-                </div>
 
-                {/* Calculation breakdown */}
-                <div className="bg-brand-bg p-5 rounded-2xl border border-brand-border space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-brand-slate font-medium">Base Price (₹45,000/Sq. Yd.):</span>
-                    <span className="font-extrabold text-brand-navy">{formatINR(baseCost)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-brand-slate font-medium">GST (18%):</span>
-                    <span className="font-extrabold text-brand-navy">{formatINR(gstCost)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-brand-slate font-medium">Registration Charges ({gender === "male" ? "7%" : "6%"}):</span>
-                    <span className="font-extrabold text-brand-navy">{formatINR(regCost)}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-brand-border-mid text-sm">
-                    <span className="text-brand-navy font-bold">Estimated Net Total:</span>
-                    <span className="text-base font-extrabold text-brand-blue">{formatLakhs(totalCost)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lead Capture Form Panel */}
-              <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-3xl border border-brand-border shadow-brand flex flex-col justify-center">
-                <h3 className="text-lg font-extrabold text-brand-navy mb-2 tracking-tight text-center">
-                  Unlock Exclusive Inventory
-                </h3>
-                <p className="text-xs text-brand-slate text-center max-w-sm mx-auto mb-6 leading-relaxed font-semibold">
-                  Share your details to receive the official pricing brochure, premium unit allocations, and connect directly with a certified property advisor.
-                </p>
-
-                {isSuccess ? (
-                  <div className="text-center py-8 space-y-4 animate-in fade-in duration-200">
-                    <div className="w-12 h-12 rounded-full bg-brand-emerald-bg text-brand-emerald border border-brand-emerald/10 flex items-center justify-center mx-auto shadow-sm">
-                      <CheckCircle2 size={24} />
-                    </div>
-                    <div>
-                      <h4 className="text-base font-extrabold text-brand-navy m-0">Inquiry Saved!</h4>
-                      <p className="text-xs text-brand-slate mt-1 leading-relaxed font-semibold">
-                        Redirecting you to our advisory desk on WhatsApp to share unit maps...
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => setIsSuccess(false)}
-                      className="btn-secondary py-2 text-xs"
-                    >
-                      Fill Form Again
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={(e) => handleLeadSubmit(e, true, "Quote Calculator")} className="space-y-4">
-                    {errorMessage && (
-                      <div className="p-3 bg-brand-red-bg border border-brand-red-border text-brand-red text-xs rounded-xl font-medium animate-in slide-in-from-top-1">
-                        {errorMessage}
-                      </div>
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full btn-primary py-3.5 text-xs uppercase tracking-wider mt-4 flex items-center justify-center gap-1.5 shadow-brand-blue"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        Registering...
+                      </>
+                    ) : (
+                      <>
+                        Request Quote on WhatsApp <ArrowRight size={13} />
+                      </>
                     )}
-
-                    <div>
-                      <label htmlFor="form-name" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
-                        Your Name
-                      </label>
-                      <input 
-                        id="form-name"
-                        type="text" 
-                        required 
-                        placeholder="e.g. Rahul Sharma"
-                        value={leadName}
-                        onChange={(e) => setLeadName(e.target.value)}
-                        className="form-input"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="form-phone" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
-                        Phone Number
-                      </label>
-                      <input 
-                        id="form-phone"
-                        type="tel" 
-                        required 
-                        placeholder="e.g. +91 98765 43210"
-                        value={leadPhone}
-                        onChange={(e) => setLeadPhone(e.target.value)}
-                        className="form-input"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="form-city" className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1.5">
-                        Your City
-                      </label>
-                      <input 
-                        id="form-city"
-                        type="text" 
-                        required 
-                        placeholder="e.g. Delhi NCR"
-                        value={leadCity}
-                        onChange={(e) => setLeadCity(e.target.value)}
-                        className="form-input"
-                      />
-                    </div>
-
-                    <button 
-                      type="submit" 
-                      disabled={isSubmitting}
-                      className="w-full btn-primary py-3.5 text-xs uppercase tracking-wider mt-4 flex items-center justify-center gap-1.5 shadow-brand-blue"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 size={13} className="animate-spin" />
-                          Registering...
-                        </>
-                      ) : (
-                        <>
-                          Request Quote on WhatsApp <ArrowRight size={13} />
-                        </>
-                      )}
-                    </button>
-                  </form>
-                )}
-              </div>
-
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </section>
