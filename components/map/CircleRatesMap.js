@@ -714,13 +714,16 @@ export default function CircleRatesMap() {
 
             {/* Height Expand/Collapse Click Zone */}
             <div 
-              className="py-1 flex flex-col items-center justify-center cursor-pointer select-none"
+              className="py-1 flex flex-col items-center justify-center cursor-pointer select-none gap-0.5"
               onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
             >
-              <div className="w-10 h-1 bg-brand-slate-light/35 rounded-full mb-1" />
-              <span className="text-[9px] font-bold text-brand-slate-light uppercase tracking-wider">
-                {isDrawerExpanded ? "Collapse Details" : "Expand Details"}
-              </span>
+              <div className="w-10 h-1 bg-brand-slate-light/35 rounded-full mb-0.5" />
+              <div className="flex items-center gap-1 text-brand-slate-light">
+                {isDrawerExpanded ? <ChevronDown size={12} className="stroke-[3]" /> : <ChevronUp size={12} className="stroke-[3]" />}
+                <span className="text-[9px] font-bold uppercase tracking-wider">
+                  {isDrawerExpanded ? "Collapse Details" : "Expand Details"}
+                </span>
+              </div>
             </div>
           </div>
             
