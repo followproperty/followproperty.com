@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import PropertyGrid from "@/components/dashboard/PropertyGrid";
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 
@@ -11,36 +11,33 @@ export default function ExpandableProjectSection({
   type = "market",
   currentFilters = {},
 }) {
+  const filtersKey = `${currentFilters.city || ""}-${currentFilters.builder || ""}-${currentFilters.propertyType || ""}-${currentFilters.status || ""}`;
+
   const [projects, setProjects] = useState(initialProjects);
-  const [fullProjects, setFullProjects] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // If initialProjects or filters change, reset local states
-  useEffect(() => {
+  const [prevInitialProjects, setPrevInitialProjects] = useState(initialProjects);
+  const [prevFiltersKey, setPrevFiltersKey] = useState(filtersKey);
+
+  if (initialProjects !== prevInitialProjects || filtersKey !== prevFiltersKey) {
     setProjects(initialProjects);
-    setFullProjects(null);
     setIsExpanded(false);
     setError(null);
-  }, [initialProjects, currentFilters]);
+    setPrevInitialProjects(initialProjects);
+    setPrevFiltersKey(filtersKey);
+  }
 
   const handleToggle = async () => {
-    if (isExpanded) {
+    if (projects.length >= totalCount) {
       // Collapse back to initial 3 projects
       setProjects(initialProjects);
       setIsExpanded(false);
       return;
     }
 
-    if (fullProjects) {
-      // Use cached full projects list
-      setProjects(fullProjects);
-      setIsExpanded(true);
-      return;
-    }
-
-    // Fetch full list from API
+    // Fetch next batch of 9 projects from API
     setLoading(true);
     setError(null);
 
@@ -52,21 +49,28 @@ export default function ExpandableProjectSection({
       if (currentFilters.propertyType) queryParams.set("propertyType", currentFilters.propertyType);
       if (currentFilters.status) queryParams.set("status", currentFilters.status);
 
+      // Request pagination parameters
+      queryParams.set("skip", projects.length.toString());
+      queryParams.set("limit", "9");
+
       const res = await fetch(`/api/projects/list?${queryParams.toString()}`);
       if (!res.ok) {
-        throw new Error("Failed to fetch all projects");
+        throw new Error("Failed to fetch projects");
       }
       const result = await res.json();
       if (result.success && result.data) {
-        setFullProjects(result.data);
-        setProjects(result.data);
-        setIsExpanded(true);
+        const nextBatch = result.data;
+        const updatedProjects = [...projects, ...nextBatch];
+        setProjects(updatedProjects);
+        if (updatedProjects.length >= totalCount) {
+          setIsExpanded(true);
+        }
       } else {
         throw new Error(result.error || "Failed to load projects");
       }
     } catch (err) {
       console.error(err);
-      setError("Unable to load full project list. Please try again.");
+      setError("Unable to load more projects. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -118,7 +122,7 @@ export default function ExpandableProjectSection({
               </>
             ) : (
               <>
-                Show More ({totalCount - 3} more) <ChevronDown size={14} />
+                Show More ({totalCount - projects.length} more) <ChevronDown size={14} />
               </>
             )}
           </button>

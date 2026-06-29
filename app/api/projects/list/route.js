@@ -17,6 +17,9 @@ export async function GET(request) {
     const propertyTypeParam = searchParams.get("propertyType") || "All";
     const statusParam = searchParams.get("status") || "All";
 
+    const skip = Math.max(0, parseInt(searchParams.get("skip") || "0", 10) || 0);
+    const limit = Math.max(1, parseInt(searchParams.get("limit") || "9", 10) || 9);
+
     // Build Mongoose query
     const query = {};
 
@@ -50,10 +53,14 @@ export async function GET(request) {
     if (type === "upcoming") {
       dbProjects = await UpcomingProject.find(query)
         .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .lean();
     } else {
       dbProjects = await MarketProject.find(query)
         .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .lean();
     }
 
