@@ -39,13 +39,18 @@ export async function GET(request) {
         const rawLocality = r.locality || '';
         const locKey = `locality-${distName}-${rawLocality.toLowerCase()}`;
 
-        if (!rateMap[stateKey]) rateMap[stateKey] = { residential: [], commercial: [], agricultural: [], all: [] };
-        if (!rateMap[distKey]) rateMap[distKey] = { residential: [], commercial: [], agricultural: [], all: [] };
-        if (!rateMap[locKey]) rateMap[locKey] = { residential: [], commercial: [], agricultural: [], all: [] };
+        if (!rateMap[stateKey]) rateMap[stateKey] = { residential: [], commercial: [], agricultural: [], all: [], confidences: [] };
+        if (!rateMap[distKey]) rateMap[distKey] = { residential: [], commercial: [], agricultural: [], all: [], confidences: [] };
+        if (!rateMap[locKey]) rateMap[locKey] = { residential: [], commercial: [], agricultural: [], all: [], confidences: [] };
 
         rateMap[stateKey].all.push(r.circleRate);
         rateMap[distKey].all.push(r.circleRate);
         rateMap[locKey].all.push(r.circleRate);
+
+        const confVal = r.confidence || 'high';
+        rateMap[stateKey].confidences.push(confVal);
+        rateMap[distKey].confidences.push(confVal);
+        rateMap[locKey].confidences.push(confVal);
 
         if (r.landUse === 'Residential') {
           rateMap[stateKey].residential.push(r.circleRate);
@@ -74,11 +79,14 @@ export async function GET(request) {
         else if (geo.level === 'district') key = `district-${name.toLowerCase()}`;
         else key = `locality-${(geo.district || '').toLowerCase()}-${name.toLowerCase()}`;
 
-        const areaMap = rateMap[key] || { residential: [], commercial: [], agricultural: [], all: [] };
+        const areaMap = rateMap[key] || { residential: [], commercial: [], agricultural: [], all: [], confidences: [] };
         const avg = areaMap.all.length ? Math.round(areaMap.all.reduce((a, b) => a + b, 0) / areaMap.all.length) : null;
         const res = areaMap.residential.length ? Math.round(areaMap.residential.reduce((a, b) => a + b, 0) / areaMap.residential.length) : null;
         const com = areaMap.commercial.length ? Math.round(areaMap.commercial.reduce((a, b) => a + b, 0) / areaMap.commercial.length) : null;
         const agr = areaMap.agricultural.length ? Math.round(areaMap.agricultural.reduce((a, b) => a + b, 0) / areaMap.agricultural.length) : null;
+
+        const confs = areaMap.confidences || [];
+        const confidence = confs.includes('low') ? 'low' : confs.includes('medium') ? 'medium' : 'high';
 
         return {
           name,
@@ -89,6 +97,7 @@ export async function GET(request) {
           residentialRate: res,
           commercialRate: com,
           agriculturalRate: agr,
+          confidence,
           geometry: {
             type: geo.geometry.type,
             coordinates: geo.geometry.coordinates
@@ -150,11 +159,14 @@ export async function GET(request) {
                 else if (level === 'district') key = `district-${name.toLowerCase()}`;
                 else key = `locality-${district.toLowerCase()}-${name.toLowerCase()}`;
 
-                const areaMap = rateMap[key] || { residential: [], commercial: [], agricultural: [], all: [] };
+                const areaMap = rateMap[key] || { residential: [], commercial: [], agricultural: [], all: [], confidences: [] };
                 const avg = areaMap.all.length ? Math.round(areaMap.all.reduce((a, b) => a + b, 0) / areaMap.all.length) : null;
                 const res = areaMap.residential.length ? Math.round(areaMap.residential.reduce((a, b) => a + b, 0) / areaMap.residential.length) : null;
                 const com = areaMap.commercial.length ? Math.round(areaMap.commercial.reduce((a, b) => a + b, 0) / areaMap.commercial.length) : null;
                 const agr = areaMap.agricultural.length ? Math.round(areaMap.agricultural.reduce((a, b) => a + b, 0) / areaMap.agricultural.length) : null;
+
+                const confs = areaMap.confidences || [];
+                const confidence = confs.includes('low') ? 'low' : confs.includes('medium') ? 'medium' : 'high';
 
                 results.push({
                   name,
@@ -165,6 +177,7 @@ export async function GET(request) {
                   residentialRate: res,
                   commercialRate: com,
                   agriculturalRate: agr,
+                  confidence,
                   geometry: {
                     type: item.geojson.type,
                     coordinates: item.geojson.coordinates
@@ -219,10 +232,13 @@ export async function GET(request) {
           residential: [],
           commercial: [],
           agricultural: [],
-          all: []
+          all: [],
+          confidences: []
         };
       }
       rateMap[key].all.push(r.circleRate);
+      rateMap[key].confidences.push(r.confidence || 'high');
+      
       if (r.landUse === 'Residential') rateMap[key].residential.push(r.circleRate);
       else if (r.landUse === 'Commercial') rateMap[key].commercial.push(r.circleRate);
       else if (r.landUse === 'Agricultural') rateMap[key].agricultural.push(r.circleRate);
@@ -235,13 +251,17 @@ export async function GET(request) {
       const res = val.residential.length ? Math.round(val.residential.reduce((a, b) => a + b, 0) / val.residential.length) : null;
       const com = val.commercial.length ? Math.round(val.commercial.reduce((a, b) => a + b, 0) / val.commercial.length) : null;
       const agr = val.agricultural.length ? Math.round(val.agricultural.reduce((a, b) => a + b, 0) / val.agricultural.length) : null;
-      rateAverages[key] = { avg, residential: res, commercial: com, agricultural: agr };
+      
+      const confs = val.confidences || [];
+      const confidence = confs.includes('low') ? 'low' : confs.includes('medium') ? 'medium' : 'high';
+      
+      rateAverages[key] = { avg, residential: res, commercial: com, agricultural: agr, confidence };
     }
     
     // 3. Construct GeoJSON features list
     const features = geometries.map(geo => {
       const nameKey = (level === 'state' ? geo.stateCode : geo.name).toLowerCase().trim();
-      const ratesInfo = rateAverages[nameKey] || { avg: null, residential: null, commercial: null, agricultural: null };
+      const ratesInfo = rateAverages[nameKey] || { avg: null, residential: null, commercial: null, agricultural: null, confidence: 'high' };
       
       return {
         type: 'Feature',
@@ -254,6 +274,7 @@ export async function GET(request) {
           residentialRate: ratesInfo.residential,
           commercialRate: ratesInfo.commercial,
           agriculturalRate: ratesInfo.agricultural,
+          confidence: ratesInfo.confidence || 'high'
         },
         geometry: {
           type: geo.geometry.type,

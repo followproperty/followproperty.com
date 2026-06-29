@@ -45,6 +45,11 @@ const CircleRateSchema = new mongoose.Schema(
       enum: ["Residential", "Commercial", "Agricultural"],
       default: "Residential",
     },
+    confidence: {
+      type: String,
+      enum: ["high", "medium", "low"],
+      default: "high",
+    },
   },
   {
     timestamps: true,

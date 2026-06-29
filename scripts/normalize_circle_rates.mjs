@@ -72,7 +72,8 @@ async function run() {
         unit: 'INR_PER_SQFT',
         originalRate,
         originalUnit: 'INR_PER_SQM',
-        landUse: 'Residential'
+        landUse: 'Residential',
+        confidence: rec.confidence || 'high'
       });
     }
 
@@ -130,7 +131,8 @@ async function run() {
         unit: 'INR_PER_SQFT',
         originalRate,
         originalUnit,
-        landUse
+        landUse,
+        confidence: rec.confidence || 'high'
       });
     }
 
@@ -206,7 +208,8 @@ async function run() {
         unit: 'INR_PER_SQFT',
         originalRate,
         originalUnit,
-        landUse
+        landUse,
+        confidence: rec.confidence || 'high'
       });
     }
 

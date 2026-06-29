@@ -341,7 +341,8 @@ export default function CircleRatesMap() {
       residentialRate: item.residentialRate,
       commercialRate: item.commercialRate,
       agriculturalRate: item.agriculturalRate,
-      geometry: item.geometry
+      geometry: item.geometry,
+      confidence: item.confidence
     };
     setSelectedArea(formattedSelection);
 
@@ -461,9 +462,23 @@ export default function CircleRatesMap() {
             <div className="flex flex-col gap-5">
               {/* Header */}
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-brand-blue badge-blue mb-1">
-                  {activeStats.level} details
-                </span>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-brand-blue badge-blue">
+                    {activeStats.level} details
+                  </span>
+                  
+                  {activeStats.circleRate && (
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      activeStats.confidence === 'low'
+                        ? "bg-amber-50 text-amber-700 border border-amber-200"
+                        : activeStats.confidence === 'medium'
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    }`}>
+                      {activeStats.confidence === 'low' ? '⚠️ Est. Rate' : activeStats.confidence === 'medium' ? 'Estimated' : '✓ Verified'}
+                    </span>
+                  )}
+                </div>
                 <h2 className="text-2xl font-bold text-brand-navy tracking-tight">{activeStats.name}</h2>
                 <p className="text-xs text-brand-slate-light mt-0.5">
                   {activeStats.district ? `${activeStats.district}, ` : ""}{activeStats.stateCode}
@@ -735,8 +750,21 @@ export default function CircleRatesMap() {
             
             {activeStats ? (
               <div className="flex items-center justify-between w-full px-4 mt-0.5">
-                <div className="text-left">
-                  <span className="text-[8px] uppercase font-bold text-brand-blue tracking-wider">{activeStats.level} details</span>
+                <div className="text-left flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[8px] uppercase font-bold text-brand-blue tracking-wider">{activeStats.level} details</span>
+                    {activeStats.circleRate && (
+                      <span className={`text-[7px] px-1 py-0.2 rounded-sm font-extrabold uppercase tracking-wider border ${
+                        activeStats.confidence === 'low'
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : activeStats.confidence === 'medium'
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      }`}>
+                        {activeStats.confidence === 'low' ? 'Est.' : activeStats.confidence === 'medium' ? 'Est.' : 'Verified'}
+                      </span>
+                    )}
+                  </div>
                   <h3 className="text-sm font-extrabold text-brand-navy m-0 leading-tight truncate max-w-[170px]">{activeStats.name}</h3>
                 </div>
                 <div className="text-right flex flex-col justify-center">
