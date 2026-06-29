@@ -492,6 +492,12 @@ export default function CircleRatesMap() {
                   {activeStats.circleRate ? `₹${activeStats.circleRate.toLocaleString()}` : "Coming Soon"}
                 </span>
                 <span className="text-[10px] font-bold text-brand-slate-light uppercase mt-0.5">per Sq. Ft.</span>
+                
+                {activeStats.circleRate && activeStats.confidence === 'low' && (
+                  <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200/50 px-2.5 py-0.5 rounded-full mt-2 uppercase tracking-wider animate-pulse">
+                    Low Confidence Baseline
+                  </span>
+                )}
               </div>
 
               {(activeStats.level === "state" || activeStats.level === "district") && activeStats.circleRate && (
@@ -512,9 +518,14 @@ export default function CircleRatesMap() {
                     </div>
                     <span className="text-sm font-semibold text-brand-navy">Residential</span>
                   </div>
-                  <span className="text-sm font-bold text-brand-navy">
-                    {activeStats.residentialRate ? `₹${activeStats.residentialRate.toLocaleString()}/sqft` : "N/A"}
-                  </span>
+                  <div className="text-right flex flex-col">
+                    <span className="text-sm font-bold text-brand-navy">
+                      {activeStats.residentialRate ? `₹${activeStats.residentialRate.toLocaleString()}/sqft` : "N/A"}
+                    </span>
+                    {activeStats.residentialRate && activeStats.confidence === 'low' && (
+                      <span className="text-[9px] font-bold text-amber-600 mt-0.5">Low Confidence</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Commercial */}
@@ -525,9 +536,14 @@ export default function CircleRatesMap() {
                     </div>
                     <span className="text-sm font-semibold text-brand-navy">Commercial</span>
                   </div>
-                  <span className="text-sm font-bold text-brand-navy">
-                    {activeStats.commercialRate ? `₹${activeStats.commercialRate.toLocaleString()}/sqft` : "N/A"}
-                  </span>
+                  <div className="text-right flex flex-col">
+                    <span className="text-sm font-bold text-brand-navy">
+                      {activeStats.commercialRate ? `₹${activeStats.commercialRate.toLocaleString()}/sqft` : "N/A"}
+                    </span>
+                    {activeStats.commercialRate && activeStats.confidence === 'low' && (
+                      <span className="text-[9px] font-bold text-amber-600 mt-0.5">Low Confidence</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Agricultural */}
@@ -539,9 +555,14 @@ export default function CircleRatesMap() {
                       </div>
                       <span className="text-sm font-semibold text-brand-navy">Agricultural</span>
                     </div>
-                    <span className="text-sm font-bold text-brand-navy">
-                      {activeStats.agriculturalRate ? `₹${activeStats.agriculturalRate.toLocaleString()}/sqft` : "N/A"}
-                    </span>
+                    <div className="text-right flex flex-col">
+                      <span className="text-sm font-bold text-brand-navy">
+                        {activeStats.agriculturalRate ? `₹${activeStats.agriculturalRate.toLocaleString()}/sqft` : "N/A"}
+                      </span>
+                      {activeStats.agriculturalRate && activeStats.confidence === 'low' && (
+                        <span className="text-[9px] font-bold text-amber-600 mt-0.5">Low Confidence</span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -764,6 +785,11 @@ export default function CircleRatesMap() {
                       <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
                     )}
                   </div>
+                  {activeStats.circleRate && activeStats.confidence === 'low' && (
+                    <span className="text-[7.5px] font-extrabold text-amber-700 leading-none text-right mt-0.5 uppercase tracking-wider">
+                      Low Confidence
+                    </span>
+                  )}
                 </div>
               </div>
             ) : (
@@ -795,6 +821,9 @@ export default function CircleRatesMap() {
                           <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
                         )}
                       </div>
+                      {activeStats.residentialRate && activeStats.confidence === 'low' && (
+                        <span className="text-[7.5px] font-bold text-amber-600 mt-0.5 leading-none">Low Conf.</span>
+                      )}
                     </div>
                   </div>
                   <div className="border border-brand-border rounded-xl p-2.5 flex justify-between items-center bg-brand-bg/40">
@@ -808,6 +837,9 @@ export default function CircleRatesMap() {
                           <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
                         )}
                       </div>
+                      {activeStats.commercialRate && activeStats.confidence === 'low' && (
+                        <span className="text-[7.5px] font-bold text-amber-600 mt-0.5 leading-none">Low Conf.</span>
+                      )}
                     </div>
                   </div>
                   
@@ -823,6 +855,9 @@ export default function CircleRatesMap() {
                             <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
                           )}
                         </div>
+                        {activeStats.agriculturalRate && activeStats.confidence === 'low' && (
+                          <span className="text-[7.5px] font-bold text-amber-600 mt-0.5 leading-none">Low Conf.</span>
+                        )}
                       </div>
                     </div>
                   )}
