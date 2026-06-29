@@ -721,18 +721,6 @@ export default function CircleRatesMap() {
           <div 
             className="w-full py-1.5 flex flex-col items-center justify-center border-b border-brand-border/30 bg-brand-bg/10 relative shrink-0"
           >
-            {/* Minimize Completely Button (Down Arrow) */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowMobileUI(false);
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-brand-border flex items-center justify-center text-brand-slate hover:text-brand-navy shadow-xs active:scale-95 transition-all"
-              title="Minimize panel"
-            >
-              <ChevronDown size={18} className="stroke-[2.5]" />
-            </button>
-
             {/* Height Expand/Collapse Click Zone */}
             <div 
               className="py-1 flex flex-col items-center justify-center cursor-pointer select-none gap-0.5"
@@ -768,9 +756,14 @@ export default function CircleRatesMap() {
                 </div>
                 <div className="text-right flex flex-col justify-center">
                   <span className="text-[9px] text-brand-slate-light leading-none font-bold uppercase tracking-wider">Avg Rate</span>
-                  <span className="text-base font-extrabold text-brand-navy mt-0.5">
-                    {activeStats.circleRate ? `₹${activeStats.circleRate.toLocaleString()}` : "Coming Soon"}
-                  </span>
+                  <div className="flex items-baseline justify-end gap-0.5 mt-0.5">
+                    <span className="text-base font-extrabold text-brand-navy">
+                      {activeStats.circleRate ? `₹${activeStats.circleRate.toLocaleString()}` : "Coming Soon"}
+                    </span>
+                    {activeStats.circleRate && (
+                      <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -794,17 +787,27 @@ export default function CircleRatesMap() {
                   <div className="border border-brand-border rounded-xl p-2.5 flex justify-between items-center bg-brand-bg/40">
                     <div className="flex flex-col">
                       <span className="text-[9px] text-brand-slate-light uppercase font-bold tracking-wider">Residential</span>
-                      <span className="text-xs font-extrabold text-brand-navy mt-0.5">
-                        {activeStats.residentialRate ? `₹${activeStats.residentialRate.toLocaleString()}` : "N/A"}
-                      </span>
+                      <div className="flex items-baseline gap-0.5 mt-0.5">
+                        <span className="text-xs font-extrabold text-brand-navy">
+                          {activeStats.residentialRate ? `₹${activeStats.residentialRate.toLocaleString()}` : "N/A"}
+                        </span>
+                        {activeStats.residentialRate && (
+                          <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="border border-brand-border rounded-xl p-2.5 flex justify-between items-center bg-brand-bg/40">
                     <div className="flex flex-col">
                       <span className="text-[9px] text-brand-slate-light uppercase font-bold tracking-wider">Commercial</span>
-                      <span className="text-xs font-extrabold text-brand-navy mt-0.5">
-                        {activeStats.commercialRate ? `₹${activeStats.commercialRate.toLocaleString()}` : "N/A"}
-                      </span>
+                      <div className="flex items-baseline gap-0.5 mt-0.5">
+                        <span className="text-xs font-extrabold text-brand-navy">
+                          {activeStats.commercialRate ? `₹${activeStats.commercialRate.toLocaleString()}` : "N/A"}
+                        </span>
+                        {activeStats.commercialRate && (
+                          <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
@@ -812,9 +815,14 @@ export default function CircleRatesMap() {
                     <div className="border border-brand-border rounded-xl p-2.5 flex justify-between items-center col-span-2 bg-brand-bg/40">
                       <div className="flex flex-col">
                         <span className="text-[9px] text-brand-slate-light uppercase font-bold tracking-wider">Agricultural</span>
-                        <span className="text-xs font-extrabold text-brand-navy mt-0.5">
-                          {activeStats.agriculturalRate ? `₹${activeStats.agriculturalRate.toLocaleString()}` : "N/A"}
-                        </span>
+                        <div className="flex items-baseline gap-0.5 mt-0.5">
+                          <span className="text-xs font-extrabold text-brand-navy">
+                            {activeStats.agriculturalRate ? `₹${activeStats.agriculturalRate.toLocaleString()}` : "N/A"}
+                          </span>
+                          {activeStats.agriculturalRate && (
+                            <span className="text-[8px] font-bold text-brand-slate-light">/ sq. ft.</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
