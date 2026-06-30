@@ -24,11 +24,17 @@ export async function GET(req) {
 
     await connectToDatabase();
 
+    const searchQuery = query.trim();
+
+    // Match query against either projectName OR locality (case-insensitive)
     const projects = await MarketProject.find({
-      projectName: { $regex: new RegExp(query.trim(), "i") }
+      $or: [
+        { projectName: { $regex: new RegExp(searchQuery, "i") } },
+        { locality: { $regex: new RegExp(searchQuery, "i") } }
+      ]
     })
     .select("_id projectName location locality city state gps images status")
-    .limit(15)
+    .limit(20)
     .lean();
 
     const formatted = projects.map((p) => ({
