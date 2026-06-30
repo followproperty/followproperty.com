@@ -10,6 +10,18 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Helper to generate URL-safe slugs for folders
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-")           // Replace spaces with -
+    .replace(/[^\w\-]+/g, "")       // Remove all non-word chars
+    .replace(/\-\-+/g, "-")         // Replace multiple - with single -
+    .replace(/^-+/, "")             // Trim - from start
+    .replace(/-+$/, "");            // Trim - from end
+}
+
 export async function POST(req) {
   try {
     // Authenticate request
@@ -41,10 +53,25 @@ export async function POST(req) {
 
     await connectToDatabase();
 
-    // 1. Upload photos to Cloudinary using the official SDK
-    const uploadPromises = photos.map(async (base64Photo) => {
+    // Fetch the project to generate the slug folder path
+    const project = await MarketProject.findById(projectId);
+    if (!project) {
+      return NextResponse.json(
+        { success: false, error: "Project not found in database." },
+        { status: 404 }
+      );
+    }
+
+    const projectSlug = slugify(project.projectName || "project");
+
+    // 1. Upload photos to Cloudinary using custom slug folder structure
+    const uploadPromises = photos.map(async (base64Photo, index) => {
       const result = await cloudinary.uploader.upload(base64Photo, {
-        folder: "Followproperty/projects/field-collector",
+        // Group under Followproperty/projects/[project-slug]/media/images/
+        folder: `Followproperty/projects/${projectSlug}/media/images`,
+        public_id: `${projectSlug}-${index + 1}`,
+        overwrite: true,
+        invalidate: true,
       });
       return result.secure_url;
     });
@@ -52,30 +79,16 @@ export async function POST(req) {
     const imageUrls = await Promise.all(uploadPromises);
 
     // 2. Update coordinates and images array in MongoDB
-    const updated = await MarketProject.findByIdAndUpdate(
-      projectId,
-      {
-        $set: {
-          gps: gps.trim(),
-          images: imageUrls,
-        },
-      },
-      { new: true }
-    );
-
-    if (!updated) {
-      return NextResponse.json(
-        { success: false, error: "Project not found in database." },
-        { status: 404 }
-      );
-    }
+    project.gps = gps.trim();
+    project.images = imageUrls;
+    await project.save();
 
     return NextResponse.json({
       success: true,
-      projectId: String(updated._id),
-      projectName: updated.projectName,
-      gps: updated.gps,
-      imagesCount: updated.images.length,
+      projectId: String(project._id),
+      projectName: project.projectName,
+      gps: project.gps,
+      imagesCount: project.images.length,
     });
   } catch (err) {
     console.error("Error in field-collector/submit API:", err);
