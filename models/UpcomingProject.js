@@ -127,6 +127,10 @@ const UpcomingProjectSchema = new mongoose.Schema(
             type: [String],
             default: []
         },
+        photoGps: {
+            type: [String],
+            default: []
+        },
         videos: {
             type: [String],
             default: []

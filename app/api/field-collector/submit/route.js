@@ -35,7 +35,7 @@ export async function POST(req) {
       );
     }
 
-    const { projectId, gps, photos } = await req.json();
+    const { projectId, gps, photos, photoGps } = await req.json();
 
     if (!projectId || !gps) {
       return NextResponse.json(
@@ -81,6 +81,9 @@ export async function POST(req) {
     // 2. Update coordinates and images array in MongoDB
     project.gps = gps.trim();
     project.images = imageUrls;
+    if (photoGps && Array.isArray(photoGps)) {
+      project.photoGps = photoGps;
+    }
     await project.save();
 
     return NextResponse.json({
