@@ -526,13 +526,21 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
                   style={{ border: 0 }} 
                   loading="lazy" 
                   allowFullScreen 
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(project.projectName + ", " + (project.locality || "") + ", " + project.city)}&t=&z=14&ie=UTF8&iwloc=&output=embed`} 
+                  src={
+                    project.gps && project.gps.trim() 
+                      ? `https://maps.google.com/maps?q=${encodeURIComponent(project.gps.trim())}&t=&z=16&ie=UTF8&iwloc=&output=embed`
+                      : `https://maps.google.com/maps?q=${encodeURIComponent(project.projectName + ", " + (project.locality || "") + ", " + project.city)}&t=&z=14&ie=UTF8&iwloc=&output=embed`
+                  } 
                 />
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <a 
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.projectName + " " + (project.locality || "") + " " + project.city)}`}
+                  href={
+                    project.gps && project.gps.trim()
+                      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.gps.trim())}`
+                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.projectName + " " + (project.locality || "") + " " + project.city)}`
+                  }
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex-1 py-3 px-4 rounded-xl bg-brand-blue hover:bg-brand-blue-dark text-white text-xs font-bold text-center no-underline shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer border-none"
