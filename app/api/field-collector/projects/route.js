@@ -18,18 +18,14 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const locality = searchParams.get("locality");
 
-    if (!locality) {
-      return NextResponse.json(
-        { success: false, error: "Locality is required" },
-        { status: 400 }
-      );
-    }
-
     await connectToDatabase();
 
-    const projects = await MarketProject.find({
-      locality: { $regex: new RegExp(`^${locality.trim()}$`, "i") }
-    })
+    const query = {};
+    if (locality && locality !== "all") {
+      query.locality = { $regex: new RegExp(`^${locality.trim()}$`, "i") };
+    }
+
+    const projects = await MarketProject.find(query)
     .select("_id projectName location locality city state gps images status")
     .sort({ projectName: 1 })
     .lean();
@@ -54,7 +50,7 @@ export async function GET(req) {
   } catch (err) {
     console.error("Error in field-collector/projects list API:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to load projects for locality." },
+      { success: false, error: err.message || "Failed to load projects." },
       { status: 500 }
     );
   }
