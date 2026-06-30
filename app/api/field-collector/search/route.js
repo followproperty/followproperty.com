@@ -26,16 +26,33 @@ export async function GET(req) {
 
     const searchQuery = query.trim();
 
-    // Match query against either projectName OR locality (case-insensitive)
-    const projects = await MarketProject.find({
+    // OPTIMIZATION: 1. Try prefix search first (utilizes indexes extremely fast)
+    let projects = await MarketProject.find({
       $or: [
-        { projectName: { $regex: new RegExp(searchQuery, "i") } },
-        { locality: { $regex: new RegExp(searchQuery, "i") } }
+        { projectName: { $regex: new RegExp("^" + searchQuery, "i") } },
+        { locality: { $regex: new RegExp("^" + searchQuery, "i") } }
       ]
     })
     .select("_id projectName location locality city state gps images status")
     .limit(20)
     .lean();
+
+    // 2. Fallback to contains search only if we found fewer than 6 projects
+    if (projects.length < 6) {
+      const existingIds = projects.map((p) => p._id);
+      const additional = await MarketProject.find({
+        $or: [
+          { projectName: { $regex: new RegExp(searchQuery, "i") } },
+          { locality: { $regex: new RegExp(searchQuery, "i") } }
+        ],
+        _id: { $nin: existingIds }
+      })
+      .select("_id projectName location locality city state gps images status")
+      .limit(20 - projects.length)
+      .lean();
+
+      projects = [...projects, ...additional];
+    }
 
     const formatted = projects.map((p) => ({
       _id: String(p._id),
