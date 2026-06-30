@@ -22,7 +22,12 @@ export async function GET(req) {
 
     const query = {};
     if (locality && locality !== "all") {
-      query.locality = { $regex: new RegExp(`^${locality.trim()}$`, "i") };
+      if (locality.includes(",")) {
+        const sectors = locality.split(",").map((s) => s.trim()).filter(Boolean);
+        query.locality = { $in: sectors.map((sec) => new RegExp(`^${sec}$`, "i")) };
+      } else {
+        query.locality = { $regex: new RegExp(`^${locality.trim()}$`, "i") };
+      }
     }
 
     const projects = await MarketProject.find(query)
