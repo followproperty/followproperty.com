@@ -44,7 +44,7 @@ export async function POST(req) {
     // 1. Upload photos to Cloudinary using the official SDK
     const uploadPromises = photos.map(async (base64Photo) => {
       const result = await cloudinary.uploader.upload(base64Photo, {
-        folder: "follwproperty/projects/field-collector",
+        folder: "Followproperty/projects/field-collector",
       });
       return result.secure_url;
     });
