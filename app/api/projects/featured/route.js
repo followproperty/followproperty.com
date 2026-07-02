@@ -7,8 +7,10 @@ export async function GET() {
   try {
     await connectToDatabase();
 
-    // Fetch the 15 most recent projects to support rotating display
-    const dbProjects = await UpcomingProject.find({})
+    // Fetch the 15 most recent projects to support rotating display (excluding Vrindavan project)
+    const dbProjects = await UpcomingProject.find({
+      projectSlug: { $ne: "vrindavan-plotting-project" }
+    })
       .sort({ createdAt: -1 })
       .limit(15)
       .lean();

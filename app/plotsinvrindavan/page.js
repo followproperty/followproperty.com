@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { notFound } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Nav from "@/components/landing/CTASection";
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 
 export default function VrindavanPlotsPage() {
+  notFound();
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
     loading: true,

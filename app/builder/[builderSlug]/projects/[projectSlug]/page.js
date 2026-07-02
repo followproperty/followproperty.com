@@ -66,7 +66,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
   const { watchlistId } = await searchParams;
 
   if (projectSlug === "vrindavan-plotting-project") {
-    redirect("/plotsinvrindavan");
+    notFound();
   }
 
   await connectToDatabase();

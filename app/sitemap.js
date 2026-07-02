@@ -48,10 +48,10 @@ export default async function sitemap() {
       priority: 0.9,
     }));
 
-    // 3. Fetch upcoming projects with valid slugs
+    // 3. Fetch upcoming projects with valid slugs (excluding Vrindavan project)
     const upcomingProjects = await UpcomingProject.find({
       builderSlug: { $exists: true, $ne: "" },
-      projectSlug: { $exists: true, $ne: "" },
+      projectSlug: { $exists: true, $ne: "", $ne: "vrindavan-plotting-project" },
     }).select("builderSlug projectSlug updatedAt").lean();
     upcomingProjectRoutes = upcomingProjects.map((p) => ({
       url: `${baseUrl}/builder/${p.builderSlug}/projects/${p.projectSlug}`,

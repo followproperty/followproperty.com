@@ -80,7 +80,8 @@ export default async function BuilderProfilePage({ params }) {
       ]
     }).lean(),
     UpcomingProject.find({
-      builderSlug: slug
+      builderSlug: slug,
+      projectSlug: { $ne: "vrindavan-plotting-project" }
     }).lean()
   ]);
 

@@ -20,8 +20,10 @@ export async function GET(request) {
     const skip = Math.max(0, parseInt(searchParams.get("skip") || "0", 10) || 0);
     const limit = Math.max(1, parseInt(searchParams.get("limit") || "9", 10) || 9);
 
-    // Build Mongoose query
-    const query = {};
+    // Build Mongoose query (excluding Vrindavan project)
+    const query = {
+      projectSlug: { $ne: "vrindavan-plotting-project" }
+    };
 
     if (cityParam !== "All") {
       query.city = cityParam;

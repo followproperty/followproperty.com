@@ -90,8 +90,10 @@ export default async function ProjectsPage({ searchParams }) {
   });
   const buildersList = Array.from(normalizedBuildersSet).sort();
 
-  // 2. Build Mongoose query
-  const query = {};
+  // 2. Build Mongoose query (excluding Vrindavan project)
+  const query = {
+    projectSlug: { $ne: "vrindavan-plotting-project" }
+  };
 
   if (cityParam !== "All") {
     query.city = cityParam;
