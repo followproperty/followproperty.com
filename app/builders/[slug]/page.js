@@ -29,7 +29,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${canonicalBuilderName} - Projects & Real Estate Portfolio | FollowProperty`,
     description: `Explore delivered and ongoing properties by ${canonicalBuilderName}. Get project configurations, price ranges, possession years, and location details direct from developers.`,
-    alternatives: {
+    alternates: {
       canonical: `/builders/${slug}`,
     },
   };

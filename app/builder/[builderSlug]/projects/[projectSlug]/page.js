@@ -54,7 +54,7 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
-    alternatives: {
+    alternates: {
       canonical: canonicalPath,
     },
   };

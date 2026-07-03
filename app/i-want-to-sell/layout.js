@@ -1,7 +1,7 @@
 export const metadata = {
   title: "List Your Property for Sale | FollowProperty",
   description: "List your property and reach serious buyers. Monitor and track valuations in real-time.",
-  alternatives: {
+  alternates: {
     canonical: "/i-want-to-sell",
   },
 };

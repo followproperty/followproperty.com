@@ -24,8 +24,8 @@ export const metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
-  alternatives: {
-    canonical: "/",
+  alternates: {
+    canonical: "https://www.followproperty.com",
   },
 };
 
