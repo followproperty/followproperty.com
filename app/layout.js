@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL("https://www.followproperty.com"),
   title: "FollowProperty - India's Property Intelligence Platform",
   description: "Monitor value, builder risks, legal alerts, and appreciation in one place. Built for serious property investors.",
   icons: {
@@ -22,6 +23,9 @@ export const metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
+  alternatives: {
+    canonical: "/",
   },
 };
 

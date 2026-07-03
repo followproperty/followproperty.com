@@ -8,8 +8,16 @@ export default function robots() {
         "/dashboard",
         "/portfolio",
         "/watchlist",
+        "/admin",
+        "/settings",
+        "/onboarding",
+        "/rera",
+        "/builder-dashboard",
+        "/builder-register",
+        "/builder-application-status",
+        "/property",
       ],
     },
-    sitemap: "https://followproperty.com/sitemap.xml",
+    sitemap: "https://www.followproperty.com/sitemap.xml",
   };
 }

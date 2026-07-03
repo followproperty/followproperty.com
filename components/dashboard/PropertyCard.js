@@ -94,7 +94,7 @@ export default function PropertyCard({ property, watchlistId }) {
               By{" "}
               {property.builder ? (
                 <Link
-                  href={`/builders/${property.builder.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                  href={`/builders/${property.builderSlug || property.builder.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                   className="font-bold text-brand-navy-mid hover:text-brand-blue hover:underline no-underline"
                 >
                   {property.builder}

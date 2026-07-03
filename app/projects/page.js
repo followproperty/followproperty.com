@@ -13,6 +13,9 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Browse Real Estate Projects & Properties | FollowProperty",
   description: "Explore our comprehensive directory of real estate developments, residential apartments, plots, and commercial projects. Filter by city, status, and developer.",
+  alternatives: {
+    canonical: "/projects",
+  },
 };
 
 function mapProjectToCard(p) {

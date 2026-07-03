@@ -11,6 +11,9 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Real Estate Developers & Builders | FollowProperty",
   description: "Browse premium developers and builders in your location. View construction tracking metrics, total properties, delivered projects, and ongoing inventory.",
+  alternatives: {
+    canonical: "/builders",
+  },
 };
 
 export default async function BuildersDirectoryPage() {

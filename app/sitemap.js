@@ -3,8 +3,10 @@ import MarketProject from "@/models/MarketProject";
 import UpcomingProject from "@/models/UpcomingProject";
 import Builder from "@/models/Builder";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap() {
-  const baseUrl = "https://followproperty.com";
+  const baseUrl = "https://www.followproperty.com";
 
   // Static site paths
   const staticRoutes = [
@@ -64,10 +66,18 @@ export default async function sitemap() {
     console.error("Error generating sitemap routes dynamically:", error);
   }
 
-  return [
+  const allRoutes = [
     ...staticRoutes,
     ...builderRoutes,
     ...marketProjectRoutes,
     ...upcomingProjectRoutes,
   ];
+
+  // Deduplicate routes by url to prevent duplicate indexation signals
+  const uniqueRoutesMap = new Map();
+  allRoutes.forEach((route) => {
+    uniqueRoutesMap.set(route.url, route);
+  });
+
+  return Array.from(uniqueRoutesMap.values());
 }

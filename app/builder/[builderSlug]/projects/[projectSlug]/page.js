@@ -49,13 +49,13 @@ export async function generateMetadata({ params }) {
 
   const title = `${project.projectName} by ${project.builderName} in ${project.locality ? `${project.locality}, ` : ""}${project.city} | FollowProperty`;
   const description = `Explore specifications, configurations, prices, and amenities of ${project.projectName} built by ${project.builderName} in ${project.locality ? `${project.locality}, ` : ""}${project.city}.`;
-  const canonicalUrl = `https://followproperty.com/builder/${builderSlug}/projects/${projectSlug}`;
+  const canonicalPath = `/builder/${builderSlug}/projects/${projectSlug}`;
 
   return {
     title,
     description,
     alternatives: {
-      canonical: canonicalUrl,
+      canonical: canonicalPath,
     },
   };
 }
@@ -98,9 +98,9 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
 
   const isReady = project.status === "Ready to Move" || project.status === "Ready" || project.status === "Completed";
 
-  const resolvedBuilderSlug = project.builderName
+  const resolvedBuilderSlug = project.builderSlug || (project.builderName
     ? normalizeBuilder(project.builderName).toLowerCase().replace(/[^a-z0-9]+/g, "-")
-    : "";
+    : "");
 
   // Compile Dynamic Project Highlights list
   const highlights = [];
@@ -200,10 +200,10 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "RealEstateProject",
+    "@type": "ApartmentComplex",
     "name": project.projectName,
     "description": project.tagline || `Real estate development project ${project.projectName} by ${project.builderName}`,
-    "url": `https://followproperty.com/builder/${builderSlug}/projects/${projectSlug}`,
+    "url": `https://www.followproperty.com/builder/${builderSlug}/projects/${projectSlug}`,
     "image": project.images && project.images.length > 0 ? project.images : undefined,
     "address": {
       "@type": "PostalAddress",
@@ -216,7 +216,7 @@ export default async function ProjectDetailsPage({ params, searchParams }) {
     "builder": project.builderName ? {
       "@type": "Organization",
       "name": project.builderName,
-      "url": resolvedBuilderSlug ? `https://followproperty.com/builders/${resolvedBuilderSlug}` : undefined
+      "url": resolvedBuilderSlug ? `https://www.followproperty.com/builders/${resolvedBuilderSlug}` : undefined
     } : undefined,
     "offers": project.minPrice ? {
       "@type": "AggregateOffer",
