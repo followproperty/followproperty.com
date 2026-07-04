@@ -14,10 +14,10 @@ function getBuilderRedirectUrl(builderStatus, baseUrl) {
 }
 
 /**
- * Next.js Edge Middleware for route protection.
+ * Next.js Edge Proxy for route protection.
  * Runs on the Edge runtime.
  */
-export function middleware(request) {
+export function proxy(request) {
   const token = request.cookies.get("token")?.value;
   const role = request.cookies.get("user_role")?.value;
   const builderStatus = request.cookies.get("builder_status")?.value;

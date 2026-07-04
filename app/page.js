@@ -1,14 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Nav from "@/components/landing/CTASection";
 import Hero from "@/components/landing/HeroSection";
-import CoreFlows from "@/components/landing/FeaturesSection";
-import FeaturedProjects from "@/components/landing/FeaturedProjects";
-import Footer from "@/components/landing/Footer";
-import ReferralAdWidget from "@/components/landing/ReferralAdWidget";
+
+// Dynamically import lower-fold components to improve initial page load speed
+const CoreFlows = dynamic(() => import("@/components/landing/FeaturesSection"), { ssr: true });
+const FeaturedProjects = dynamic(() => import("@/components/landing/FeaturedProjects"), { ssr: true });
+const ProductPreview = dynamic(() => import("@/components/landing/ProductPreview"), { ssr: true });
+const TrustSection = dynamic(() => import("@/components/landing/TrustSection"), { ssr: true });
+const HowItWorks = dynamic(() => import("@/components/landing/HowItWorks"), { ssr: true });
+const FinalCTASection = dynamic(() => import("@/components/landing/FinalCTASection"), { ssr: true });
+const Footer = dynamic(() => import("@/components/landing/Footer"), { ssr: true });
+const ReferralAdWidget = dynamic(() => import("@/components/landing/ReferralAdWidget"), { ssr: false });
 
 export default function Home() {
   const [authState, setAuthState] = useState({
@@ -22,7 +29,7 @@ export default function Home() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         try {
-          // Fetch portfolios and watchlists in parallel from secure MongoDB APIs
+          // Fetch portfolios and watchlists in parallel from MongoDB APIs
           const [portfolioRes, watchlistRes] = await Promise.all([
             fetch("/api/portfolio"),
             fetch("/api/watchlist")
@@ -78,10 +85,18 @@ export default function Home() {
       <Nav authState={authState} />
       <Hero authState={authState} />
       <CoreFlows authState={authState} />
-      <FeaturedProjects />
+      
+      {/* Scroll anchor target for secondary Hero CTA */}
+      <div id="featured-developments">
+        <FeaturedProjects />
+      </div>
+
+      <ProductPreview />
+      <TrustSection />
+      <HowItWorks />
+      <FinalCTASection />
       <Footer />
       <ReferralAdWidget />
     </div>
   );
 }
-

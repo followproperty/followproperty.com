@@ -1,8 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Instrument Sans', 'DM Sans', system-ui, sans-serif;
+  --font-sans: var(--font-instrument-sans), var(--font-dm-sans), system-ui, sans-serif;
 
   --color-brand-bg: #FAFAF8;
   --color-brand-bg-alt: #F4F3EF;
@@ -271,4 +270,13 @@ body {
   border-radius: 0.75rem;
   overflow: hidden;
   background-color: #FFFFFF;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@utility cursor-typing-blink {
+  animation: cursor-blink 0.8s step-end infinite;
 }

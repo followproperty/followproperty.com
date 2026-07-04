@@ -109,10 +109,10 @@ export default function FeaturedProjects() {
         }
         return prevIndex + 1;
       });
-    }, 8000);
+    }, 4000); // Optimized rotation speed (4 seconds)
 
     return () => clearInterval(timer);
-  }, [projects.length, visibleCount]);
+  }, [projects.length, visibleCount, currentIndex]);
 
   const maxIndex = Math.max(0, projects.length - visibleCount);
 
@@ -144,14 +144,14 @@ export default function FeaturedProjects() {
             <div className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full border border-brand-border bg-brand-bg-card mb-3.5 shadow-brand">
               <Sparkles size={12} className="text-brand-blue animate-pulse" />
               <span className="text-[10px] text-brand-slate-light tracking-[0.10em] uppercase font-bold">
-                Market Spotlight
+                Still exploring opportunities?
               </span>
             </div>
-            <h2 className="text-[clamp(26px,4vw,40px)] font-bold text-brand-navy tracking-tight mb-3">
-              Featured Developments
+            <h2 className="text-[clamp(26px,4vw,38px)] font-extrabold text-brand-navy tracking-tight mb-3">
+              Verified Featured Projects
             </h2>
-            <p className="text-[15px] sm:text-[16px] text-brand-slate leading-relaxed mb-0">
-              Explore newly launched and top-trending real estate opportunities across high-appreciation sectors.
+            <p className="text-[15px] sm:text-[16px] text-brand-slate leading-relaxed mb-0 font-medium">
+              Browse curated residential and commercial developments currently monitored on our dashboard.
             </p>
           </motion.div>
 
@@ -194,7 +194,7 @@ export default function FeaturedProjects() {
         ) : (
           <div className="overflow-hidden mx-[-12px] px-[12px] py-6">
             <motion.div
-              className="flex"
+              className={`flex ${projects.length < visibleCount ? "justify-center" : ""}`}
               animate={{ x: `-${currentIndex * cardWidthPercent}%` }}
               transition={{
                 type: "spring",

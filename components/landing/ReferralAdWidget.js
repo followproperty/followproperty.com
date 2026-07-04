@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { X } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
@@ -113,9 +114,11 @@ export default function ReferralAdWidget() {
             {/* Glossy reflection layer */}
             <div className="absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -skew-x-12 -left-full z-20 pointer-events-none animate-shine" />
             
-            <img
+            <Image
               src="/images/refer/iphone-orange.png"
               alt="iPhone Pro Cosmic Orange"
+              width={68}
+              height={90}
               className="w-[85%] h-auto object-contain drop-shadow-[0_8px_16px_rgba(253,121,51,0.4)] transform group-hover:scale-108 group-hover:rotate-2 transition duration-500"
             />
           </div>
