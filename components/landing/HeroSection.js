@@ -288,7 +288,7 @@ export default function Hero({ authState }) {
               </div>
 
               {/* Browser Workspace Content */}
-              <div className="flex flex-1 h-[400px] md:h-auto min-h-[380px] lg:min-h-[410px] relative overflow-hidden">
+              <div className="flex flex-1 h-[410px] relative overflow-hidden">
                 {/* Clickable Sidebar Workspace Selector (only visible above md) */}
                 <div className="w-[180px] bg-[#F4F3EF]/60 border-r border-brand-border p-4 hidden md:flex flex-col gap-5 shrink-0">
                   <div className="flex items-center gap-2 mb-2">
@@ -328,7 +328,7 @@ export default function Hero({ authState }) {
                 <div className="flex-1 p-4.5 sm:p-5 bg-white/50 flex flex-col justify-between overflow-hidden">
                   
                   {/* Mobile Tab Swapper (only visible below md) */}
-                  <div className="flex md:hidden gap-1 overflow-x-auto pb-2 mb-3.5 scrollbar-none border-b border-brand-border-mid">
+                  <div className="flex md:hidden flex-wrap gap-x-2 gap-y-1.5 mb-3.5 pb-2.5 border-b border-brand-border-mid">
                     {[
                       { id: "overview", label: "Dashboard", icon: LayoutDashboard },
                       { id: "portfolio", label: "Portfolio", icon: Building2 },
