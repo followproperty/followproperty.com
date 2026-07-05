@@ -359,9 +359,6 @@ export default function HomeLoansWithCashbackPage() {
                 <CirclePercent size={13} className="text-brand-blue animate-pulse" />
                 Exclusive Cashback Offers
               </div>
-              <div className="inline-flex items-center gap-1.5 py-1.5 px-4 rounded-full border border-brand-amber-border bg-brand-amber-bg text-brand-amber text-[10px] md:text-[11px] font-bold tracking-wider uppercase shadow-inner">
-                Approved Fintech Partner Coming Soon
-              </div>
             </div>
 
             {/* Core Titles */}
