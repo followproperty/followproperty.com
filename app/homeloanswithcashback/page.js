@@ -29,11 +29,6 @@ export default function HomeLoansWithCashbackPage() {
     hasWatchlist: false
   });
 
-  // DB Builders & Projects list
-  const [dbBuilders, setDbBuilders] = useState([]);
-  const [builderInputMode, setBuilderInputMode] = useState("dropdown"); // "dropdown" or "manual"
-  const [projectInputMode, setProjectInputMode] = useState("dropdown"); // "dropdown" or "manual"
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -93,31 +88,6 @@ export default function HomeLoansWithCashbackPage() {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  // Fetch unique builders and projects list on mount
-  useEffect(() => {
-    const fetchBuildersAndProjects = async () => {
-      try {
-        const res = await fetch("/api/homeloanapplications/builders");
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setDbBuilders(json.data);
-          // If we successfully get a list, default to dropdown selector
-          setBuilderInputMode("dropdown");
-          setProjectInputMode("dropdown");
-        } else {
-          // If endpoint fails or database has no projects, fall back to manual input mode
-          setBuilderInputMode("manual");
-          setProjectInputMode("manual");
-        }
-      } catch (err) {
-        console.error("Failed to load builders/projects list:", err);
-        setBuilderInputMode("manual");
-        setProjectInputMode("manual");
-      }
-    };
-    fetchBuildersAndProjects();
   }, []);
 
   // Form State
@@ -369,13 +339,6 @@ export default function HomeLoansWithCashbackPage() {
   // Custom Dropdown arrow style
   const selectArrowStyle = {
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C97A8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-  };
-
-  // Find filtered projects list based on builder select
-  const getProjectsForSelectedBuilder = () => {
-    if (!formData.builder) return [];
-    const matched = dbBuilders.find(b => b.builder === formData.builder);
-    return matched ? matched.projects : [];
   };
 
   return (
@@ -645,99 +608,30 @@ export default function HomeLoansWithCashbackPage() {
                           )}
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            {/* Builder Filter Dropdown */}
                             <div id="field-builder">
-                              <div className="flex justify-between items-center mb-2">
-                                <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider">
-                                  Builder <span className="text-brand-slate-light font-medium">(Optional)</span>
-                                </label>
-                                {dbBuilders.length > 0 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const newMode = builderInputMode === "dropdown" ? "manual" : "dropdown";
-                                      setBuilderInputMode(newMode);
-                                      handleInputChange("builder", "");
-                                      handleInputChange("project", "");
-                                      setProjectInputMode("manual");
-                                    }}
-                                    className="text-[9px] font-extrabold text-brand-blue bg-transparent border-none p-0 cursor-pointer hover:underline"
-                                  >
-                                    {builderInputMode === "dropdown" ? "Enter Manually" : "Choose from List"}
-                                  </button>
-                                )}
-                              </div>
-
-                              {builderInputMode === "dropdown" && dbBuilders.length > 0 ? (
-                                <select
-                                  value={formData.builder}
-                                  onChange={(e) => {
-                                    handleInputChange("builder", e.target.value);
-                                    handleInputChange("project", "");
-                                    setProjectInputMode(e.target.value ? "dropdown" : "manual");
-                                  }}
-                                  className={getInputClassName("builder", true)}
-                                  style={selectArrowStyle}
-                                >
-                                  <option value="">Select Builder...</option>
-                                  {dbBuilders.map(b => (
-                                    <option key={b.builder} value={b.builder}>{b.builder}</option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <input
-                                  type="text"
-                                  placeholder="e.g. Omaxe Group"
-                                  value={formData.builder}
-                                  onChange={(e) => handleInputChange("builder", e.target.value)}
-                                  className={getInputClassName("builder")}
-                                />
-                              )}
+                              <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">
+                                Builder <span className="text-brand-slate-light font-medium">(Optional)</span>
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Omaxe Group"
+                                value={formData.builder}
+                                onChange={(e) => handleInputChange("builder", e.target.value)}
+                                className={getInputClassName("builder")}
+                              />
                             </div>
 
-                            {/* Project Filter Dropdown linked to Builder */}
                             <div id="field-project">
-                              <div className="flex justify-between items-center mb-2">
-                                <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider">
-                                  Project <span className="text-brand-slate-light font-medium">(Optional)</span>
-                                </label>
-                                {formData.builder && builderInputMode === "dropdown" && getProjectsForSelectedBuilder().length > 0 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const newMode = projectInputMode === "dropdown" ? "manual" : "dropdown";
-                                      setProjectInputMode(newMode);
-                                      handleInputChange("project", "");
-                                    }}
-                                    className="text-[9px] font-extrabold text-brand-blue bg-transparent border-none p-0 cursor-pointer hover:underline"
-                                  >
-                                    {projectInputMode === "dropdown" ? "Enter Manually" : "Choose from List"}
-                                  </button>
-                                )}
-                              </div>
-
-                              {projectInputMode === "dropdown" && formData.builder && getProjectsForSelectedBuilder().length > 0 ? (
-                                <select
-                                  value={formData.project}
-                                  onChange={(e) => handleInputChange("project", e.target.value)}
-                                  className={getInputClassName("project", true)}
-                                  style={selectArrowStyle}
-                                >
-                                  <option value="">Select Project...</option>
-                                  {getProjectsForSelectedBuilder().map(p => (
-                                    <option key={p} value={p}>{p}</option>
-                                  ))}
-                                  <option value="Other">Other / Enter manually...</option>
-                                </select>
-                              ) : (
-                                <input
-                                  type="text"
-                                  placeholder="e.g. Omaxe Eternity"
-                                  value={formData.project}
-                                  onChange={(e) => handleInputChange("project", e.target.value)}
-                                  className={getInputClassName("project")}
-                                />
-                              )}
+                              <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">
+                                Project <span className="text-brand-slate-light font-medium">(Optional)</span>
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Omaxe Eternity"
+                                value={formData.project}
+                                onChange={(e) => handleInputChange("project", e.target.value)}
+                                className={getInputClassName("project")}
+                              />
                             </div>
                           </div>
 

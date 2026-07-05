@@ -150,7 +150,7 @@ export default function Nav({ authState }) {
       <div className="max-w-[1200px] mx-auto px-6 py-3.5 flex items-center justify-between">
         
         {/* Brand Logo & Name */}
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 no-underline cursor-pointer">
           <img src="/favicon.svg" alt="FollowProperty Logo" className="w-7 h-7 object-contain" />
           <span className={`font-bold text-[17px] tracking-[-0.025em] transition-colors duration-300 ${scrolled ? "text-brand-navy" : "text-brand-blue"}`}>
             FollowProperty
@@ -158,7 +158,7 @@ export default function Nav({ authState }) {
           <span className={`hidden sm:inline-block text-[10px] tracking-[0.14em] uppercase ml-1 transition-colors duration-300 ${scrolled ? "text-brand-slate-light" : "text-brand-slate"}`}>
             Real Assets
           </span>
-        </div>
+        </Link>
 
         {/* Centered Desktop Search Bar */}
         <SearchBar isMobileView={false} />
