@@ -109,7 +109,7 @@ export default function HomeLoansWithCashbackPage() {
     downPaymentAvailable: "",
     preferredLoanTenure: "",
     preferredBank: "",
-    preferredInterestRate: "",
+    preferredInterestRate: "8.5",
 
     // Employment Details
     employmentType: "",
@@ -435,7 +435,7 @@ export default function HomeLoansWithCashbackPage() {
                         downPaymentAvailable: "",
                         preferredLoanTenure: "",
                         preferredBank: "",
-                        preferredInterestRate: "",
+                        preferredInterestRate: "8.5",
                         employmentType: "",
                         monthlyNetIncome: "",
                         totalWorkExperience: "",
@@ -766,17 +766,28 @@ export default function HomeLoansWithCashbackPage() {
 
                             <div id="field-preferredInterestRate">
                               <label className="block sm:h-8 flex sm:items-end text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">
-                                <span>
-                                  Preferred Interest Rate % <span className="text-brand-slate-light font-medium">(Optional)</span>
+                                <span className="flex justify-between items-center w-full">
+                                  <span>Preferred Interest Rate</span>
+                                  <span className="text-brand-blue font-extrabold text-xs tracking-normal normal-case">
+                                    {formData.preferredInterestRate || "8.5"}%
+                                  </span>
                                 </span>
                               </label>
-                              <input
-                                type="text"
-                                placeholder="e.g. 8.5%"
-                                value={formData.preferredInterestRate}
-                                onChange={(e) => handleInputChange("preferredInterestRate", e.target.value)}
-                                className={getInputClassName("preferredInterestRate")}
-                              />
+                              <div className="flex flex-col justify-center h-12">
+                                <input
+                                  type="range"
+                                  min="7"
+                                  max="20"
+                                  step="0.1"
+                                  value={formData.preferredInterestRate || "8.5"}
+                                  onChange={(e) => handleInputChange("preferredInterestRate", e.target.value)}
+                                  className="w-full accent-brand-blue h-1.5 bg-brand-bg-alt rounded-lg appearance-none cursor-pointer"
+                                />
+                                <div className="flex justify-between text-[9px] text-brand-slate-light font-bold mt-2 select-none">
+                                  <span>7%</span>
+                                  <span>20%</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
