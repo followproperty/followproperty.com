@@ -34,29 +34,10 @@ const blurIn = {
 
 const keywords = ["properties.", "watchlists.", "investments."];
 
-export default function Hero({ authState }) {
-  const router = useRouter();
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 800], [0, 160]);
-  const opacity = useTransform(scrollY, [0, 600], [1, 0]);
-
+function TypingText() {
   const [index, setIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const [dashboardTab, setDashboardTab] = useState("overview");
-  const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  const tabsList = ["overview", "portfolio", "watchlist", "projects", "rera", "rates"];
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   useEffect(() => {
     let timer;
@@ -86,6 +67,34 @@ export default function Hero({ authState }) {
 
     return () => clearTimeout(timer);
   }, [displayedText, isDeleting, index]);
+
+  return (
+    <span className="inline-block bg-linear-to-r from-brand-blue-deep to-brand-blue bg-clip-text text-transparent font-black">
+      {displayedText || "\u200b"}
+    </span>
+  );
+}
+
+export default function Hero({ authState }) {
+  const router = useRouter();
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 800], [0, 160]);
+  const opacity = useTransform(scrollY, [0, 600], [1, 0]);
+
+  const [dashboardTab, setDashboardTab] = useState("overview");
+  const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const tabsList = ["overview", "portfolio", "watchlist", "projects", "rera", "rates"];
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!isAutoPlayActive) return;
@@ -179,7 +188,7 @@ export default function Hero({ authState }) {
       </div>
 
       <motion.div
-        style={isMobile ? {} : { y, opacity }}
+        style={isMobile ? {} : { y, opacity, willChange: "transform, opacity" }}
         className="flex-1 flex items-center justify-center px-8 lg:px-16 pt-[120px] pb-[96px] lg:py-0 relative z-10"
       >
         <div className="max-w-[1320px] w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center text-center lg:text-left">
@@ -203,9 +212,7 @@ export default function Hero({ authState }) {
               className="text-[clamp(28px,4vw,42px)] font-extrabold tracking-tight leading-[1.15] text-brand-navy-deep mb-0 max-w-[500px]"
             >
               A single workspace for your{" "}
-              <span className="inline-block bg-linear-to-r from-brand-blue-deep to-brand-blue bg-clip-text text-transparent font-black">
-                {displayedText || "\u200b"}
-              </span>
+              <TypingText />
               <span className="inline-block w-[3px] sm:w-[4px] h-[0.8em] bg-brand-blue ml-1.5 shrink-0 cursor-typing-blink align-middle" />
             </motion.h1>
 
