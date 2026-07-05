@@ -347,11 +347,11 @@ export default function HomeLoansWithCashbackPage() {
       <Nav authState={authState} />
 
       {/* Main Content Area */}
-      <main className="flex-1 pt-24 pb-16">
-        <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <main className="flex-1 pt-20 sm:pt-24 pb-20 md:pb-24">
+        <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* Left Column: Hero and Benefits */}
-          <div className="lg:col-span-5 text-left lg:sticky lg:top-28 space-y-8 py-4">
+          <div className="lg:col-span-5 text-left lg:sticky lg:top-28 space-y-5 sm:space-y-8 py-2 sm:py-4">
             
             {/* Status Badges */}
             <div className="flex flex-wrap gap-2.5">
@@ -365,17 +365,17 @@ export default function HomeLoansWithCashbackPage() {
             </div>
 
             {/* Core Titles */}
-            <div className="space-y-4">
-              <h1 className="text-[clamp(36px,5vw,52px)] font-extrabold tracking-tight leading-[1.08] text-brand-navy">
+            <div className="space-y-2.5 sm:space-y-4">
+              <h1 className="text-3xl sm:text-[clamp(36px,5vw,52px)] font-extrabold tracking-tight leading-[1.08] text-brand-navy">
                 Home Loans with <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-blue-deep">Cashback</span>
               </h1>
 
-              <h2 className="text-xl md:text-2xl font-bold text-brand-blue tracking-tight">
+              <h2 className="text-lg sm:text-2xl font-bold text-brand-blue tracking-tight">
                 Apply for a Home Loan from Us
               </h2>
 
               <p className="text-sm md:text-base text-brand-slate leading-relaxed max-w-lg">
-                Get expert assistance in finding the right home loan with exclusive cashback offers. Our approved fintech partner is coming soon. Submit your requirements and our team will get back to you within 7 days.
+                Get expert assistance in finding the right home loan with exclusive cashback offers. Our team will review your details and get back to you within 7 days.
               </p>
             </div>
 
@@ -401,7 +401,7 @@ export default function HomeLoansWithCashbackPage() {
           </div>
 
           {/* Right Column: Form Wizard Card */}
-          <div className="lg:col-span-7" id="form-card">
+          <div className="lg:col-span-7 mb-6" id="form-card">
             {isSuccess ? (
               <div className="bg-white border border-brand-border rounded-2xl shadow-brand-md p-8 md:p-12 text-center space-y-6 animate-in fade-in duration-300">
                 <div className="w-16 h-16 rounded-full bg-brand-emerald-bg text-brand-emerald border border-brand-emerald/10 flex items-center justify-center mx-auto shadow-sm">
@@ -466,14 +466,18 @@ export default function HomeLoansWithCashbackPage() {
                 
                 {/* Progress Indicator */}
                 <div className="mb-8 space-y-3">
-                  <div className="flex justify-between items-center text-xs font-bold text-brand-slate uppercase tracking-wider">
-                    <span className="font-extrabold">Step {activeStep} of 2</span>
-                    {activeStep === 1 && (
-                      <span className="text-[10px] text-brand-emerald font-extrabold normal-case tracking-normal flex items-center gap-1.5">
-                        ⏱ Takes less than 2 minutes
-                      </span>
-                    )}
-                    <span className="text-brand-blue font-extrabold">{activeStep === 1 ? "Property & Loan Details" : "Applicant Details"}</span>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs font-bold text-brand-slate uppercase tracking-wider">
+                    <div className="flex justify-between items-center w-full sm:w-auto">
+                      <span className="font-extrabold">Step {activeStep} of 2</span>
+                      {activeStep === 1 && (
+                        <span className="text-[10px] text-brand-emerald font-extrabold normal-case tracking-normal flex items-center gap-1.5 sm:ml-3">
+                          ⏱ Takes less than 2 minutes
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-brand-blue font-extrabold text-[11px] sm:text-xs">
+                      {activeStep === 1 ? "Property & Loan Details" : "Applicant Details"}
+                    </span>
                   </div>
                   <div className="w-full h-2 bg-brand-bg-alt rounded-full overflow-hidden">
                     <div 
@@ -1013,7 +1017,7 @@ export default function HomeLoansWithCashbackPage() {
                                   <input
                                     type="text"
                                     inputMode="numeric"
-                                    placeholder="e.g. 50,000"
+                                    placeholder="e.g. 50,00,000"
                                     value={formatToIndianCurrency(formData.coApplicantMonthlyIncome)}
                                     onChange={(e) => handleCurrencyChange("coApplicantMonthlyIncome", e.target.value)}
                                     className={`${getInputClassName("coApplicantMonthlyIncome")} pl-8 font-semibold text-brand-navy-deep`}
@@ -1025,7 +1029,34 @@ export default function HomeLoansWithCashbackPage() {
                           </div>
                         </div>
 
-                        {/* Section: Contact Details (Secure) - Moved up as requested */}
+                        {/* Section: Credit Profile - Moved above Contact details */}
+                        <div className="space-y-5">
+                          <h3 className="text-sm font-extrabold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-2">
+                            Credit Profile
+                          </h3>
+
+                          <div id="field-approximateCreditScore" className="max-w-md">
+                            <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">
+                              Approximate Credit Score <span className="text-brand-red font-extrabold">*</span>
+                            </label>
+                            <select
+                              value={formData.approximateCreditScore}
+                              onChange={(e) => handleInputChange("approximateCreditScore", e.target.value)}
+                              className={getInputClassName("approximateCreditScore", true)}
+                              style={selectArrowStyle}
+                            >
+                              <option value="">Select Score Range...</option>
+                              <option value="Excellent (750+)">Excellent (750+)</option>
+                              <option value="Good (700 - 749)">Good (700 - 749)</option>
+                              <option value="Fair (650 - 699)">Fair (650 - 699)</option>
+                              <option value="Needs Work (Below 650)">Needs Work (Below 650)</option>
+                              <option value="Don't Know / No Credit History">Don't Know / No Credit History</option>
+                            </select>
+                            {formErrors.approximateCreditScore && <p className="text-xs text-brand-red mt-1.5 font-semibold">{formErrors.approximateCreditScore}</p>}
+                          </div>
+                        </div>
+
+                        {/* Section: Contact Details (Secure) - Now placed directly above CTAs */}
                         <div className="space-y-5">
                           <h3 className="text-sm font-extrabold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-2 flex items-center gap-1.5">
                             <Lock size={13} className="text-brand-slate" /> Contact Details (Secure)
@@ -1081,34 +1112,7 @@ export default function HomeLoansWithCashbackPage() {
                           </div>
                         </div>
 
-                        {/* Section: Credit Profile - Positioned below Contact details */}
-                        <div className="space-y-5">
-                          <h3 className="text-sm font-extrabold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-2">
-                            Credit Profile
-                          </h3>
-
-                          <div id="field-approximateCreditScore" className="max-w-md">
-                            <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">
-                              Approximate Credit Score <span className="text-brand-red font-extrabold">*</span>
-                            </label>
-                            <select
-                              value={formData.approximateCreditScore}
-                              onChange={(e) => handleInputChange("approximateCreditScore", e.target.value)}
-                              className={getInputClassName("approximateCreditScore", true)}
-                              style={selectArrowStyle}
-                            >
-                              <option value="">Select Score Range...</option>
-                              <option value="Excellent (750+)">Excellent (750+)</option>
-                              <option value="Good (700 - 749)">Good (700 - 749)</option>
-                              <option value="Fair (650 - 699)">Fair (650 - 699)</option>
-                              <option value="Needs Work (Below 650)">Needs Work (Below 650)</option>
-                              <option value="Don't Know / No Credit History">Don't Know / No Credit History</option>
-                            </select>
-                            {formErrors.approximateCreditScore && <p className="text-xs text-brand-red mt-1.5 font-semibold">{formErrors.approximateCreditScore}</p>}
-                          </div>
-                        </div>
-
-                        {/* Back and Submit CTA Buttons */}
+                        {/* Back and Submit CTA Buttons - Consistent Blue */}
                         <div className="flex gap-4 items-center pt-6">
                           <button
                             type="button"
@@ -1127,7 +1131,7 @@ export default function HomeLoansWithCashbackPage() {
                           <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 btn-primary h-13 py-3.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-brand-blue rounded-xl hover:shadow-brand-blue/35 active:translate-y-px transition-all"
+                            className="flex-1 h-13 py-3.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-xl text-white bg-brand-blue hover:bg-brand-blue-deep shadow-[0_4px_16px_rgba(50,95,236,0.22)] hover:shadow-[0_6px_20px_rgba(50,95,236,0.32)] active:translate-y-px transition-all border-none cursor-pointer"
                           >
                             {isSubmitting ? (
                               <>
