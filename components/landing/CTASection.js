@@ -57,7 +57,7 @@ function SearchBar({ isMobileView = false }) {
   }, []);
 
   return (
-    <div ref={searchRef} className={`relative ${isMobileView ? "w-full my-3" : "w-[240px] lg:w-[280px] hidden md:block"}`}>
+    <div ref={searchRef} className={`relative ${isMobileView ? "w-full my-3" : "w-[240px] lg:w-[300px] hidden md:block"}`}>
       <div className="relative flex items-center">
         <Search className="absolute left-3 w-4 h-4 text-brand-slate-light" />
         <input
@@ -68,7 +68,7 @@ function SearchBar({ isMobileView = false }) {
           onFocus={() => {
             if (results.length > 0) setOpen(true);
           }}
-          className="w-full bg-[#F4F3EF]/60 border border-brand-border text-[13px] text-brand-navy-deep pl-9 pr-8 py-2 rounded-xl focus:outline-hidden focus:border-brand-blue-border focus:bg-white transition-all placeholder-brand-slate-light"
+          className="w-full bg-brand-bg-alt/80 border border-brand-border text-[13px] text-brand-navy pl-9 pr-8 py-2 rounded-xl focus:outline-hidden focus:border-brand-blue-border focus:bg-white transition-all placeholder-brand-slate-light"
         />
         {query && (
           <button
@@ -109,7 +109,7 @@ function SearchBar({ isMobileView = false }) {
                 >
                   <Building className="w-4 h-4 text-brand-blue shrink-0" />
                   <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-brand-navy-deep truncate">
+                    <div className="text-[13px] font-bold text-brand-navy truncate">
                       {item.projectName}
                     </div>
                     <div className="text-[11px] text-brand-slate truncate">
@@ -131,31 +131,31 @@ export default function Nav({ authState }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <motion.nav
-      initial={{ opacity: 0, y: -16 }}
+      initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-[0.4s] ease-in-out ${
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
         scrolled 
-          ? "bg-[#FAFAF8]/94 backdrop-blur-[18px] border-b border-brand-border shadow-brand" 
+          ? "bg-brand-bg/85 backdrop-blur-md border-b border-brand-border-mid shadow-brand" 
           : "bg-transparent border-b border-transparent"
       }`}
     >
-      <div className="max-w-[1200px] mx-auto px-6 py-3.5 flex items-center justify-between">
+      <div className="max-w-[1240px] mx-auto px-6 py-4 flex items-center justify-between">
         
         {/* Brand Logo & Name */}
-        <Link href="/" className="flex items-center gap-2 no-underline cursor-pointer">
+        <Link href="/" className="flex items-center gap-2.5 no-underline cursor-pointer">
           <img src="/favicon.svg" alt="FollowProperty Logo" className="w-7 h-7 object-contain" />
-          <span className={`font-bold text-[17px] tracking-[-0.025em] transition-colors duration-300 ${scrolled ? "text-brand-navy" : "text-brand-blue"}`}>
+          <span className="font-extrabold text-[18px] tracking-tight text-brand-navy transition-colors duration-300">
             FollowProperty
           </span>
-          <span className={`hidden sm:inline-block text-[10px] tracking-[0.14em] uppercase ml-1 transition-colors duration-300 ${scrolled ? "text-brand-slate-light" : "text-brand-slate"}`}>
+          <span className="hidden sm:inline-block text-[9px] font-bold tracking-[0.14em] uppercase ml-1 text-brand-slate-light">
             Real Assets
           </span>
         </Link>
@@ -164,18 +164,18 @@ export default function Nav({ authState }) {
         <SearchBar isMobileView={false} />
 
         {/* Right Nav Buttons / Auth state */}
-        <div className="hidden md:flex gap-2 items-center">
+        <div className="hidden md:flex gap-3 items-center">
           {authState?.isAuthenticated ? (
-            <Link href="/dashboard" className="text-[13px] font-bold text-white bg-linear-to-r from-brand-blue-deep to-brand-blue border border-white/5 cursor-pointer py-[9px] px-5 rounded-[10px] shadow-sm transition-all duration-[0.22s] hover:-translate-y-[1px] hover:shadow-brand-blue/30 no-underline flex items-center gap-1">
-              Go to Dashboard &rarr;
+            <Link href="/dashboard" className="btn-primary py-2 px-4.5 text-[13px] no-underline">
+              Dashboard &rarr;
             </Link>
           ) : (
             <>
-              <Link href="/login" className={`text-[13px] font-medium bg-transparent border-none cursor-pointer py-2 px-3.5 no-underline transition-colors duration-300 ${scrolled ? "text-brand-slate hover:text-brand-navy" : "text-brand-navy-mid hover:text-brand-navy-deep font-semibold"}`}>
+              <Link href="/login" className="text-[13px] font-bold text-brand-slate hover:text-brand-navy py-2 px-3 no-underline transition-colors">
                 Login
               </Link>
-              <Link href="/signup" className="text-[13px] font-bold text-white bg-linear-to-r from-brand-blue-deep to-brand-blue border border-white/5 cursor-pointer py-[9px] px-5 rounded-[10px] shadow-sm transition-all duration-[0.22s] hover:-translate-y-[1px] hover:shadow-brand-blue/30 no-underline flex items-center">
-                Create Account
+              <Link href="/signup" className="btn-primary py-2 px-4.5 text-[13px] no-underline">
+                Get Started
               </Link>
             </>
           )}
@@ -183,10 +183,10 @@ export default function Nav({ authState }) {
 
         {/* Mobile Menu Toggle Button */}
         <button
-          className={`bg-transparent border-none cursor-pointer md:hidden transition-colors duration-300 ${scrolled ? "text-brand-slate" : "text-brand-navy hover:text-brand-navy-deep"}`}
+          className="bg-transparent border-none cursor-pointer md:hidden text-brand-navy hover:text-brand-navy-deep p-1"
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
@@ -197,24 +197,25 @@ export default function Nav({ authState }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-brand-bg border-b border-brand-border px-6 pb-5 md:hidden overflow-hidden"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="bg-brand-bg border-b border-brand-border-mid px-6 pb-6 md:hidden overflow-hidden"
           >
             {/* Mobile Search Bar at the top of dropdown */}
             <SearchBar isMobileView={true} />
             
             {authState?.isAuthenticated ? (
-              <Link href="/dashboard" className="w-full mt-4 bg-linear-to-r from-brand-blue-deep to-brand-blue text-white font-bold p-3 rounded-[10px] border border-white/5 cursor-pointer block text-center no-underline shadow-sm hover:shadow-brand-blue/30">
-                Go to Dashboard &rarr;
+              <Link href="/dashboard" className="btn-primary w-full mt-3 block text-center no-underline">
+                Dashboard &rarr;
               </Link>
             ) : (
-              <>
-                <Link href="/signup" className="w-full mt-4 bg-linear-to-r from-brand-blue-deep to-brand-blue text-white font-bold p-3 rounded-[10px] border border-white/5 cursor-pointer block text-center no-underline shadow-sm hover:shadow-brand-blue/30">
-                  Get Started Free
+              <div className="flex flex-col gap-2 mt-3">
+                <Link href="/signup" className="btn-primary w-full block text-center no-underline">
+                  Create Account
                 </Link>
-                <Link href="/login" className="w-full mt-2 bg-transparent border border-brand-border-mid text-brand-navy font-semibold p-3 rounded-[10px] cursor-pointer block text-center no-underline">
+                <Link href="/login" className="btn-secondary w-full block text-center no-underline">
                   Login
                 </Link>
-              </>
+              </div>
             )}
           </motion.div>
         )}

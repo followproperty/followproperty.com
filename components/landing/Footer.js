@@ -103,7 +103,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-brand-bg-alt border-t border-brand-border py-16 md:py-24 w-full">
+    <footer className="bg-brand-bg-alt border-t border-brand-border py-12 md:py-16 w-full">
       <div className="max-w-[1200px] mx-auto px-6">
         {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 pb-12 border-b border-brand-border">

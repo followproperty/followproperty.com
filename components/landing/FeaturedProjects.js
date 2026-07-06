@@ -7,35 +7,28 @@ import { ArrowRight, Building, Sparkles, ChevronLeft, ChevronRight } from "lucid
 import PropertyCard from "../dashboard/PropertyCard";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { opacity: 0, y: 20 },
   visible: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.65, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.55, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] },
   }),
 };
 
 function PropertyCardSkeleton() {
   return (
-    <div className="bg-brand-bg-card rounded-2xl border border-brand-border overflow-hidden shadow-brand flex flex-col animate-pulse">
-      {/* Header Skeleton */}
-      <div className="h-[130px] w-full bg-linear-to-br from-brand-navy/60 to-brand-navy-mid/60 flex items-center justify-center p-5">
-        <div className="h-4 bg-white/20 rounded-md w-3/4 animate-pulse" />
-      </div>
-      {/* Content Skeleton */}
-      <div className="p-5 flex flex-col flex-1">
-        <div className="h-3.5 bg-brand-slate/15 rounded-md w-1/2 mb-3.5 animate-pulse" />
-        <div className="grid grid-cols-2 gap-3 mb-5 py-4 border-y border-brand-border">
-          <div className="h-3.5 bg-brand-slate/15 rounded-md w-3/4 animate-pulse" />
-          <div className="h-3.5 bg-brand-slate/15 rounded-md w-3/4 animate-pulse" />
-          <div className="col-span-2 h-3.5 bg-brand-slate/15 rounded-md w-1/2 animate-pulse" />
+    <div className="bg-brand-bg-card rounded-2xl border border-brand-border overflow-hidden shadow-brand flex flex-col animate-pulse min-h-[360px]">
+      <div className="h-[140px] w-full bg-linear-to-br from-brand-navy-mid/30 to-brand-navy-mid/10" />
+      <div className="p-5 flex flex-col flex-1 gap-4">
+        <div className="h-3.5 bg-brand-slate/10 rounded-md w-2/3" />
+        <div className="h-px bg-brand-border my-2" />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="h-3 bg-brand-slate/10 rounded-md w-3/4" />
+          <div className="h-3 bg-brand-slate/10 rounded-md w-3/4" />
         </div>
-        <div className="mt-auto flex items-center justify-between">
-          <div>
-            <div className="h-2.5 bg-brand-slate/15 rounded-md w-12 mb-1.5 animate-pulse" />
-            <div className="h-4 bg-brand-slate/15 rounded-md w-24 animate-pulse" />
-          </div>
-          <div className="h-8.5 bg-brand-slate/15 rounded-lg w-24 animate-pulse" />
+        <div className="mt-auto flex justify-between items-center pt-2">
+          <div className="h-5 bg-brand-slate/10 rounded-md w-24" />
+          <div className="h-7 bg-brand-slate/10 rounded-md w-16" />
         </div>
       </div>
     </div>
@@ -47,12 +40,11 @@ export default function FeaturedProjects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(4);
 
   const containerRef = useRef(null);
-  const inView = useInView(containerRef, { once: true, margin: "-80px" });
+  const inView = useInView(containerRef, { once: true, margin: "-60px" });
 
-  // Handle responsive breakpoints for visible card count
   useEffect(() => {
     function updateVisibleCount() {
       const width = window.innerWidth;
@@ -60,7 +52,7 @@ export default function FeaturedProjects() {
         setVisibleCount(1);
       } else if (width < 960) {
         setVisibleCount(2);
-      } else if (width < 1350) {
+      } else if (width < 1280) {
         setVisibleCount(3);
       } else {
         setVisibleCount(4);
@@ -72,7 +64,6 @@ export default function FeaturedProjects() {
     return () => window.removeEventListener("resize", updateVisibleCount);
   }, []);
 
-  // Fetch projects from the API
   useEffect(() => {
     async function fetchFeaturedProjects() {
       try {
@@ -97,7 +88,7 @@ export default function FeaturedProjects() {
     fetchFeaturedProjects();
   }, []);
 
-  // Auto-play interval: rotate projects every 8 seconds
+  // Carousel slide rotation
   useEffect(() => {
     if (projects.length <= visibleCount) return;
 
@@ -105,11 +96,11 @@ export default function FeaturedProjects() {
       setCurrentIndex((prevIndex) => {
         const maxIndex = projects.length - visibleCount;
         if (prevIndex >= maxIndex) {
-          return 0; // Wrap around to the beginning
+          return 0;
         }
         return prevIndex + 1;
       });
-    }, 4000); // Optimized rotation speed (4 seconds)
+    }, 5000);
 
     return () => clearInterval(timer);
   }, [projects.length, visibleCount, currentIndex]);
@@ -131,46 +122,47 @@ export default function FeaturedProjects() {
       ref={containerRef}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
-      className="py-[88px] bg-brand-bg relative overflow-hidden border-t border-brand-border"
+      className="py-16 md:py-24 bg-brand-bg-alt relative overflow-hidden border-t border-brand-border"
     >
-      {/* Background glow accent */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-[radial-gradient(ellipse,rgba(50,95,236,0.05)_0%,transparent_60%)] pointer-events-none" />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-[radial-gradient(ellipse,rgba(50,95,236,0.03)_0%,transparent_60%)]" />
+      </div>
 
-      <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+      <div className="max-w-[1240px] mx-auto px-6 relative z-10">
         
-        {/* Header section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-[52px] gap-6">
-          <motion.div variants={fadeUp} custom={0} className="text-left max-w-xl">
-            <div className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full border border-brand-border bg-brand-bg-card mb-3.5 shadow-brand">
-              <Sparkles size={12} className="text-brand-blue animate-pulse" />
+        {/* Header fold */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div className="text-left max-w-xl">
+            <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full border border-brand-border bg-brand-bg-card mb-4 shadow-xs">
+              <Sparkles size={11} className="text-brand-blue" />
               <span className="text-[10px] text-brand-slate-light tracking-[0.10em] uppercase font-bold">
-                Still exploring opportunities?
+                Investment Discoveries
               </span>
-            </div>
-            <h2 className="text-[clamp(26px,4vw,38px)] font-extrabold text-brand-navy tracking-tight mb-3">
-              Verified Featured Projects
-            </h2>
-            <p className="text-[15px] sm:text-[16px] text-brand-slate leading-relaxed mb-0 font-medium">
-              Browse curated residential and commercial developments currently monitored on our dashboard.
-            </p>
-          </motion.div>
+            </motion.div>
+            <motion.h2 variants={fadeUp} custom={1} className="text-[clamp(26px,4vw,38px)] font-black text-brand-navy-deep tracking-tight mb-4">
+              Monitored Featured Projects
+            </motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="text-sm md:text-base text-brand-slate leading-relaxed m-0 font-medium">
+              Explore structural details, possession history, and registration guides for our active real estate listings.
+            </motion.p>
+          </div>
 
           {/* Carousel Arrow Controls */}
           {!loading && projects.length > visibleCount && (
-            <motion.div variants={fadeUp} custom={0.5} className="flex gap-2.5">
+            <motion.div variants={fadeUp} custom={3} className="hidden md:flex gap-2 shrink-0">
               <button
                 onClick={handlePrev}
-                className="w-11 h-11 rounded-xl bg-brand-bg-card border border-brand-border text-brand-navy flex items-center justify-center cursor-pointer shadow-brand transition-all hover:bg-brand-bg-alt hover:border-brand-blue-border hover:text-brand-blue"
-                aria-label="Previous Project"
+                className="w-10 h-10 rounded-xl bg-white border border-brand-border text-brand-navy flex items-center justify-center cursor-pointer shadow-3xs transition-all hover:bg-brand-bg-alt hover:border-brand-blue-border/30 hover:text-brand-blue"
+                aria-label="Previous slide"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
               </button>
               <button
                 onClick={handleNext}
-                className="w-11 h-11 rounded-xl bg-brand-bg-card border border-brand-border text-brand-navy flex items-center justify-center cursor-pointer shadow-brand transition-all hover:bg-brand-bg-alt hover:border-brand-blue-border hover:text-brand-blue"
-                aria-label="Next Project"
+                className="w-10 h-10 rounded-xl bg-white border border-brand-border text-brand-navy flex items-center justify-center cursor-pointer shadow-3xs transition-all hover:bg-brand-bg-alt hover:border-brand-blue-border/30 hover:text-brand-blue"
+                aria-label="Next slide"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
             </motion.div>
           )}
@@ -178,70 +170,81 @@ export default function FeaturedProjects() {
 
         {/* Listings Slider Track */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: visibleCount }).map((_, i) => (
               <PropertyCardSkeleton key={i} />
             ))}
           </div>
         ) : error || projects.length === 0 ? (
-          <div className="bg-brand-bg-card rounded-3xl border border-brand-border p-12 text-center shadow-brand max-w-[600px] mx-auto">
-            <Building className="mx-auto text-brand-slate-light mb-4" size={48} />
-            <h3 className="text-base font-extrabold text-brand-navy mb-1">No Projects Available</h3>
-            <p className="text-xs text-brand-slate mb-0">
-              We couldn't load featured projects at this time. Please browse our complete directory.
+          <div className="bg-white rounded-3xl border border-brand-border p-12 text-center shadow-brand max-w-[500px] mx-auto">
+            <Building className="mx-auto text-brand-slate-light mb-4" size={40} />
+            <h3 className="text-base font-extrabold text-brand-navy mb-1.5">No Projects Available</h3>
+            <p className="text-xs text-brand-slate m-0">
+              We couldn't load featured projects at this time. Please browse our directory.
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden mx-[-12px] px-[12px] py-6">
-            <motion.div
-              className={`flex ${projects.length < visibleCount ? "justify-center" : ""}`}
-              animate={{ x: `-${currentIndex * cardWidthPercent}%` }}
-              transition={{
-                type: "spring",
-                stiffness: 140,
-                damping: 20,
-                mass: 0.8
-              }}
-            >
-              {projects.map((project, idx) => {
-                const isVisible = idx >= currentIndex && idx < currentIndex + visibleCount;
-                return (
-                  <motion.div
-                    key={project.id}
-                    style={{
-                      width: `${cardWidthPercent}%`,
-                      padding: "0 12px",
-                      flexShrink: 0,
-                    }}
-                    className="flex flex-col"
-                    animate={{
-                      scale: isVisible ? 1 : 0.94,
-                      opacity: isVisible ? 1 : 0.3,
-                      y: isVisible ? 0 : 12,
-                    }}
-                    whileHover={isVisible ? {
-                      y: -8,
-                      scale: 1.02,
-                      boxShadow: "0 20px 32px rgba(50, 95, 236, 0.08)",
-                    } : {}}
-                    transition={{
-                      type: "spring",
-                      stiffness: 160,
-                      damping: 18,
-                      mass: 0.8
-                    }}
-                  >
-                    <PropertyCard property={project} />
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </div>
+          <>
+            {/* Mobile Touch-Swipe Track */}
+            <div className="flex md:hidden overflow-x-auto gap-4 scrollbar-none snap-x snap-mandatory mx-[-24px] px-6 py-2">
+              {projects.map((project) => (
+                <div key={project.id} className="snap-center shrink-0 w-[78vw] max-w-[320px]">
+                  <PropertyCard property={project} />
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Spring-Slide Carousel */}
+            <div className="hidden md:block overflow-hidden mx-[-12px] px-[12px] py-4">
+              <motion.div
+                className={`flex ${projects.length < visibleCount ? "justify-center" : ""}`}
+                animate={{ x: `-${currentIndex * cardWidthPercent}%` }}
+                transition={{
+                  type: "spring",
+                  stiffness: 140,
+                  damping: 20,
+                  mass: 0.8
+                }}
+              >
+                {projects.map((project, idx) => {
+                  const isVisible = idx >= currentIndex && idx < currentIndex + visibleCount;
+                  return (
+                    <motion.div
+                      key={project.id}
+                      style={{
+                        width: `${cardWidthPercent}%`,
+                        padding: "0 12px",
+                        flexShrink: 0,
+                      }}
+                      className="flex flex-col"
+                      animate={{
+                        scale: isVisible ? 1 : 0.96,
+                        opacity: isVisible ? 1 : 0.35,
+                        y: isVisible ? 0 : 8,
+                      }}
+                      whileHover={isVisible ? {
+                        y: -6,
+                        transition: { duration: 0.22, ease: "easeOut" }
+                      } : {}}
+                      transition={{
+                        type: "spring",
+                        stiffness: 160,
+                        damping: 18,
+                        mass: 0.8
+                      }}
+                    >
+                      <PropertyCard property={project} />
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </div>
+          </>
         )}
 
         {/* Carousel Pagination Dots */}
         {!loading && projects.length > visibleCount && (
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="hidden md:flex justify-center gap-1.5 mt-8">
             {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
               <button
                 key={idx}
@@ -249,7 +252,7 @@ export default function FeaturedProjects() {
                 className={`h-2 rounded-full transition-all duration-300 ${
                   currentIndex === idx
                     ? "w-6 bg-brand-blue"
-                    : "w-2 bg-brand-slate-light/30 hover:bg-brand-slate-light/60"
+                    : "w-2 bg-brand-slate-light/25 hover:bg-brand-slate-light/50"
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
@@ -257,13 +260,13 @@ export default function FeaturedProjects() {
           </div>
         )}
 
-        {/* Centered CTA Button */}
-        <motion.div variants={fadeUp} custom={1.2} className="mt-14 text-center">
+        {/* Explore All CTA Button */}
+        <motion.div variants={fadeUp} custom={5} className="mt-14 text-center">
           <Link
             href="/projects"
-            className="inline-flex items-center justify-center gap-2.5 bg-linear-to-r from-brand-navy-deep to-brand-navy-mid text-white font-bold text-[14px] sm:text-[15px] py-3.5 px-7 rounded-[14px] border border-white/5 cursor-pointer shadow-brand-md transition-all duration-250 hover:-translate-y-0.5 hover:border-brand-blue-border hover:shadow-[0_12px_36px_rgba(50,95,236,0.14)] no-underline"
+            className="btn-primary py-3.5 px-6 text-[14px]"
           >
-            View All Projects <ArrowRight size={15} />
+            Explore Projects Directory <ArrowRight size={14} className="ml-1" />
           </Link>
         </motion.div>
 

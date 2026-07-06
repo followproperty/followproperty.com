@@ -7,12 +7,13 @@ import { auth } from "@/lib/firebase";
 import Nav from "@/components/landing/CTASection";
 import Hero from "@/components/landing/HeroSection";
 
-// Dynamically import lower-fold components to improve initial page load speed
-const CoreFlows = dynamic(() => import("@/components/landing/FeaturesSection"), { ssr: true });
-const FeaturedProjects = dynamic(() => import("@/components/landing/FeaturedProjects"), { ssr: true });
-const ProductPreview = dynamic(() => import("@/components/landing/ProductPreview"), { ssr: true });
+// Dynamically import lower-fold components to optimize page load speeds
 const TrustSection = dynamic(() => import("@/components/landing/TrustSection"), { ssr: true });
-const HowItWorks = dynamic(() => import("@/components/landing/HowItWorks"), { ssr: true });
+const PlatformOverview = dynamic(() => import("@/components/landing/ProductPreview"), { ssr: true });
+const ProductShowcase = dynamic(() => import("@/components/landing/ProductShowcase"), { ssr: true });
+const MarketIntelligence = dynamic(() => import("@/components/landing/FeaturesSection"), { ssr: true });
+const FeaturedProjects = dynamic(() => import("@/components/landing/FeaturedProjects"), { ssr: true });
+const HomeLoanCTA = dynamic(() => import("@/components/landing/HowItWorks"), { ssr: true });
 const FinalCTASection = dynamic(() => import("@/components/landing/FinalCTASection"), { ssr: true });
 const Footer = dynamic(() => import("@/components/landing/Footer"), { ssr: true });
 const ReferralAdWidget = dynamic(() => import("@/components/landing/ReferralAdWidget"), { ssr: false });
@@ -82,20 +83,39 @@ export default function Home() {
 
   return (
     <div className="bg-brand-bg min-h-screen font-sans antialiased overflow-x-hidden max-w-full">
+      {/* 1. Navigation */}
       <Nav authState={authState} />
+
+      {/* 2. Hero */}
       <Hero authState={authState} />
-      <CoreFlows authState={authState} />
-      
-      {/* Scroll anchor target for secondary Hero CTA */}
+
+      {/* 3. Trust Metrics */}
+      <TrustSection />
+
+      {/* 4. Product Showcase */}
+      <ProductShowcase />
+
+      {/* 5. Platform Overview */}
+      <PlatformOverview />
+
+      {/* 6. Market Intelligence */}
+      <MarketIntelligence />
+
+      {/* 7. Featured Projects */}
       <div id="featured-developments">
         <FeaturedProjects />
       </div>
 
-      <ProductPreview />
-      <TrustSection />
-      <HowItWorks />
+      {/* 8. Home Loan CTA */}
+      <HomeLoanCTA />
+
+      {/* 9. Final CTA */}
       <FinalCTASection />
+
+      {/* 10. Footer */}
       <Footer />
+
+      {/* 11. Referral Ad Widget */}
       <ReferralAdWidget />
     </div>
   );
