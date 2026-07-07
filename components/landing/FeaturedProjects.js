@@ -17,13 +17,13 @@ const fadeUp = {
 
 function PropertyCardSkeleton() {
   return (
-    <div className="bg-brand-bg-card rounded-2xl border border-brand-border overflow-hidden shadow-brand flex flex-col animate-pulse">
+    <div className="card-frame flex flex-col animate-pulse">
       {/* Header Skeleton */}
-      <div className="h-[130px] w-full bg-linear-to-br from-brand-navy/60 to-brand-navy-mid/60 flex items-center justify-center p-5">
+      <div className="relative h-44 sm:h-48 w-full bg-linear-to-br from-brand-navy/60 to-brand-navy-mid/60 flex items-end p-4 border-b border-brand-border">
         <div className="h-4 bg-white/20 rounded-md w-3/4 animate-pulse" />
       </div>
       {/* Content Skeleton */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1">
         <div className="h-3.5 bg-brand-slate/15 rounded-md w-1/2 mb-3.5 animate-pulse" />
         <div className="grid grid-cols-2 gap-3 mb-5 py-4 border-y border-brand-border">
           <div className="h-3.5 bg-brand-slate/15 rounded-md w-3/4 animate-pulse" />

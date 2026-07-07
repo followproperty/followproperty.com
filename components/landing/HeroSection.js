@@ -97,7 +97,7 @@ export default function Hero({ authState }) {
   }, []);
 
   useEffect(() => {
-    if (!isAutoPlayActive) return;
+    if (!isAutoPlayActive || isMobile) return;
 
     const interval = setInterval(() => {
       setDashboardTab((prev) => {
@@ -107,7 +107,7 @@ export default function Hero({ authState }) {
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlayActive]);
+  }, [isAutoPlayActive, isMobile]);
 
   const handleTabClick = (tabId) => {
     setDashboardTab(tabId);
@@ -157,19 +157,12 @@ export default function Hero({ authState }) {
             repeat: Infinity,
             repeatType: "reverse"
           }}
-          style={{ filter: "blur(2.5px)" }}
-          className="absolute inset-0 w-full h-full select-none pointer-events-none"
-        >
-          <Image 
-            src="/images/hero-bg.png" 
-            alt="Premium Indian Real Estate Towers"
-            fill
-            sizes="100vw"
-            priority
-            style={{ objectFit: "cover" }}
-            className="opacity-[0.38] select-none pointer-events-none"
-          />
-        </motion.div>
+          style={{ 
+            filter: "blur(2.5px)",
+            backgroundImage: "url('/images/hero-bg.png')" 
+          }}
+          className="hidden lg:block absolute inset-0 w-full h-full select-none pointer-events-none bg-cover bg-center opacity-[0.38]"
+        />
 
         {/* Video Overlay Blend */}
         <div className="absolute inset-0 bg-linear-to-b from-brand-bg/10 via-brand-bg/60 to-brand-bg" />
@@ -211,7 +204,8 @@ export default function Hero({ authState }) {
               animate="visible"
               className="text-[clamp(28px,4vw,42px)] font-extrabold tracking-tight leading-[1.15] text-brand-navy-deep mb-0 max-w-[500px]"
             >
-              A single workspace for your{" "}
+              A single workspace for your
+              <br className="sm:hidden" />
               <TypingText />
               <span className="inline-block w-[3px] sm:w-[4px] h-[0.8em] bg-brand-blue ml-1.5 shrink-0 cursor-typing-blink align-middle" />
             </motion.h1>
