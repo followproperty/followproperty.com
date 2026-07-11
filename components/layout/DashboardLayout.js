@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }) {
       setIsAuthenticated(isAuth);
       
       const path = window.location.pathname;
-      const isPublicRoute = path.startsWith("/projects") || path.startsWith("/builders") || path === "/";
+      const isPublicRoute = path.startsWith("/projects") || path.startsWith("/builders") || path.startsWith("/compare") || path === "/";
       if (isAuth || isPublicRoute) {
         setLoading(false);
       }
@@ -63,12 +63,31 @@ export default function DashboardLayout({ children }) {
               router.push("/builder-dashboard");
               return; // Keep loading true during redirection
             }
+          } else {
+            // Server verification failed (e.g. login disabled or session invalid)
+            setIsAuthenticated(false);
+            if (typeof window !== "undefined") {
+              sessionStorage.removeItem("isAuthenticated");
+              sessionStorage.removeItem("currentUser");
+              const path = window.location.pathname;
+              const isPublicRoute = path.startsWith("/projects") || path.startsWith("/builders") || path.startsWith("/compare") || path === "/";
+              if (!isPublicRoute) {
+                router.push("/login");
+                return;
+              }
+            }
           }
         } else {
           setIsAuthenticated(false);
           if (typeof window !== "undefined") {
             sessionStorage.removeItem("isAuthenticated");
             sessionStorage.removeItem("currentUser");
+            const path = window.location.pathname;
+            const isPublicRoute = path.startsWith("/projects") || path.startsWith("/builders") || path.startsWith("/compare") || path === "/";
+            if (!isPublicRoute) {
+              router.push("/login");
+              return;
+            }
           }
         }
       } catch (e) {
