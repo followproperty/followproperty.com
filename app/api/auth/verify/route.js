@@ -30,6 +30,7 @@ export async function POST(req) {
 
     // Check or auto-create User document in MongoDB
     let user = await User.findOne({ firebaseUid });
+    /*
     if (user && user.isPhoneVerified === false) {
       return NextResponse.json(
         {
@@ -39,6 +40,7 @@ export async function POST(req) {
         { status: 403 }
       );
     }
+    */
 
     if (!user) {
       const displayName = decodedToken.name || "";
