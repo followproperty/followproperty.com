@@ -30,6 +30,55 @@ export const verifyTokenWithServer = async (idToken) => {
     }
 };
 
+export const signupWithPhone = async (phone, password) => {
+    try {
+        const mockEmail = `${phone.replace(/\+/g, '')}@phone.com`;
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            mockEmail,
+            password
+        );
+
+        const user = userCredential.user;
+
+        // Register user in MongoDB via registration API
+        const response = await fetch("/api/auth/signup-otp", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                firebaseUid: user.uid,
+                phone
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            // Cleanup the Firebase user if backend registration fails
+            await user.delete();
+            return {
+                success: false,
+                message: data.error || "Failed to register user in database"
+            };
+        }
+
+        // Sign out user immediately until verified
+        await signOut(auth);
+
+        return {
+            success: true,
+            requestId: data.data.requestId
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message,
+        };
+    }
+};
+
 export const signupWithEmail = async (email, password, profileData = {}) => {
     try {
         const userCredential = await createUserWithEmailAndPassword(
