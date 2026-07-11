@@ -81,6 +81,14 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    requestId: {
+      type: String,
+      default: null,
+    },
+    otpExpiresAt: {
+      type: Date,
+      default: null,
+    },
     fcmTokens: {
       type: [String],
       default: [],

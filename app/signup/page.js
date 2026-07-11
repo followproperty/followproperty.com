@@ -39,15 +39,12 @@ function SignupForm() {
   useEffect(() => {
     if (!isVerifying || !requestId) return;
 
-    // Use environment variable if deployed, default to localhost for local testing
-    const otpBackendUrl = process.env.NEXT_PUBLIC_OTP_BACKEND_URL || "http://localhost:3000";
-
     const intervalId = setInterval(async () => {
       try {
-        const res = await fetch(`${otpBackendUrl}/api/v1/status/${requestId}`);
+        const res = await fetch(`/api/auth/status?requestId=${requestId}`);
         const data = await res.json();
         
-        if (data.status === "success" && data.data.verified) {
+        if (data.success && data.data.verified) {
           clearInterval(intervalId);
           console.log("[Signup] Phone verified successfully! Creating session...");
           
