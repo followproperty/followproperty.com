@@ -80,7 +80,7 @@ function SignupForm() {
   }, [isVerifying, requestId, phone, password, router, showToast]);
 
   const handleOpenSmsApp = () => {
-    const gatewayNumber = "+919453372043";
+    const gatewayNumber = "+916393682521";
     const message = `VERIFY ${requestId}`;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const separator = isIOS ? '&' : '?';
