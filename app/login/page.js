@@ -174,6 +174,7 @@ export default function Login() {
                 </div>
               )}
 
+              {/*
               <form onSubmit={handleLogin} className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-brand-navy mb-2">
@@ -235,13 +236,20 @@ export default function Login() {
                   )}
                 </button>
               </form>
+              */}
 
+              <div className="p-4 rounded-[10px] bg-amber-50/60 border border-amber-200 text-amber-800 text-[14px] font-medium text-center leading-relaxed">
+                Login is temporarily disabled.
+              </div>
+
+              {/*
               <p className="text-center mt-8 text-[14px] text-brand-slate">
                 New here?{" "}
                 <Link href="/signup" className="font-semibold text-brand-navy hover:text-brand-blue transition-colors">
                   Create Account
                 </Link>
               </p>
+              */}
             </motion.div>
           ) : (
             <motion.div
