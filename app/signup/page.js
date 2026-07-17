@@ -8,6 +8,18 @@ import { signupWithEmail } from "@/services/auth-service";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
+const getMailboxUrl = (email) => {
+  if (!email) return "https://mail.google.com";
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (domain === "gmail.com") return "https://mail.google.com";
+  if (domain === "yahoo.com" || domain === "ymail.com") return "https://mail.yahoo.com";
+  if (domain === "outlook.com" || domain === "hotmail.com" || domain === "live.com" || domain === "msn.com") return "https://outlook.live.com";
+  if (domain === "icloud.com") return "https://www.icloud.com/mail";
+  if (domain === "protonmail.com" || domain === "proton.me") return "https://mail.proton.me";
+  if (domain === "zoho.com") return "https://mail.zoho.com";
+  return `https://mail.${domain}`;
+};
+
 function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +28,7 @@ function SignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
   const router = useRouter();
@@ -48,6 +61,7 @@ function SignupForm() {
       const result = await signupWithEmail(email, password, profileData);
       if (result.success && result.requiresVerification) {
         const msg = result.message || "Verification email sent. Please verify your email before login.";
+        setRegisteredEmail(email);
         setSuccessMessage(msg);
         showToast(msg, "success", "Verification Sent");
         setEmail("");
@@ -90,9 +104,14 @@ function SignupForm() {
             <p className="text-brand-slate text-[15px] leading-relaxed mb-8">
               {successMessage}
             </p>
-            <Link href="/" className="btn-primary inline-block px-8 py-3 text-[14px] font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
-              Go to Homepage
-            </Link>
+            <a 
+              href={getMailboxUrl(registeredEmail)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary inline-block px-8 py-3 text-[14px] font-semibold rounded-lg shadow-sm hover:shadow-md transition-all no-underline text-center w-full"
+            >
+              Open Your Mailbox
+            </a>
           </div>
         ) : (
           <>
