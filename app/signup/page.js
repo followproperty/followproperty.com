@@ -1,96 +1,31 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import AuthLayout from "@/components/layout/AuthLayout";
-import { signupWithPhone } from "@/services/auth-service";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signupWithEmail } from "@/services/auth-service";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
-const toTitleCase = (str) => {
-  if (!str) return "";
-  return str
-    .trim()
-    .toLowerCase()
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
 function SignupForm() {
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [requestId, setRequestId] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isBuilder = searchParams.get("role") === "builder";
 
-  // Polling loop to check SMS verification status
-  useEffect(() => {
-    if (!isVerifying || !requestId) return;
-
-    const intervalId = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/auth/status?requestId=${requestId}`);
-        const data = await res.json();
-        
-        if (data.success && data.data.verified) {
-          clearInterval(intervalId);
-          console.log("[Signup] Phone verified successfully! Creating session...");
-          
-          // Sign in using the mock email and password
-          const mockEmail = `${phone.trim().replace(/\+/g, '')}@phone.com`;
-          const userCredential = await signInWithEmailAndPassword(auth, mockEmail, password);
-          const idToken = await userCredential.user.getIdToken();
-          
-          // Verify with local server to establish session cookies
-          const verifyRes = await fetch("/api/auth/verify", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ token: idToken }),
-          });
-
-          const verifyData = await verifyRes.json();
-          if (verifyData.success) {
-            showToast("Phone verified! Logged in successfully.", "success", "Welcome");
-            router.push("/dashboard");
-          } else {
-            setError(verifyData.message || "Failed to create session.");
-            showToast(verifyData.message || "Session error.", "error", "Error");
-          }
-        }
-      } catch (pollError) {
-        console.error("[Signup] Error polling verification status:", pollError);
-      }
-    }, 3000); // Poll every 3 seconds
-
-    return () => clearInterval(intervalId);
-  }, [isVerifying, requestId, phone, password, router, showToast]);
-
-  const handleOpenSmsApp = () => {
-    const gatewayNumber = "+916393682521";
-    const message = `VERIFY ${requestId}`;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const separator = isIOS ? '&' : '?';
-    const url = `sms:${gatewayNumber}${separator}body=${encodeURIComponent(message)}`;
-    window.location.href = url;
-  };
-
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -98,25 +33,40 @@ function SignupForm() {
       return;
     }
 
-    // Phone validation
-    if (!/^\+?[1-9]\d{1,14}$/.test(phone.trim())) {
-      setError("Please enter a valid phone number (with country code, e.g. +919999999999).");
-      showToast("Invalid phone number format.", "error", "Action Required");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const res = await signupWithPhone(phone.trim(), password);
-
-      if (res.success) {
-        setRequestId(res.requestId);
-        setIsVerifying(true);
-        showToast("Account created! Please verify your phone number to login.", "success", "Verify Phone");
+      const profileData = {
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+        city: "",
+        state: "",
+        isBuilder: isBuilder,
+      };
+      
+      const result = await signupWithEmail(email, password, profileData);
+      if (result.success && result.requiresVerification) {
+        const msg = result.message || "Verification email sent. Please verify your email before login.";
+        setSuccessMessage(msg);
+        showToast(msg, "success", "Verification Sent");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+      } else if (result.success) {
+        router.push("/dashboard");
       } else {
-        setError(res.message || "Failed to create account.");
-        showToast(res.message || "Failed to create account.", "error", "Action Required");
+        // Human-friendly Firebase error messages
+        let message = result.message || "Failed to create account";
+        if (message.includes("auth/email-already-in-use")) {
+          message = "This email is already in use. Please use a different one or login.";
+        } else if (message.includes("auth/weak-password")) {
+          message = "Password should be at least 6 characters long.";
+        } else if (message.includes("auth/invalid-email")) {
+          message = "Please enter a valid email address.";
+        }
+        setError(message);
+        showToast(message, "error", "Action Required");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -129,30 +79,20 @@ function SignupForm() {
   return (
     <AuthLayout>
       <div className="w-full max-w-[480px] py-4">
-        {isVerifying ? (
-          <div className="text-center py-10 px-6 bg-brand-blue/5 rounded-2xl border border-brand-blue/10 animate-in fade-in zoom-in-95 duration-300 shadow-sm">
-            <div className="w-16 h-16 bg-brand-blue/10 text-brand-blue rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
+        {successMessage ? (
+          <div className="text-center py-10 px-6 bg-emerald-50/40 rounded-2xl border border-emerald-100/80 animate-in fade-in zoom-in-95 duration-300 shadow-sm">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-brand-navy mb-3 tracking-[-0.01em]">Verify Your Phone</h3>
-            <p className="text-brand-slate text-[15px] leading-relaxed mb-6">
-              Click the button below to send the verification SMS from your phone number <strong>{phone}</strong>.
+            <h3 className="text-2xl font-bold text-brand-navy mb-3 tracking-[-0.01em]">Thank You!</h3>
+            <p className="text-brand-slate text-[15px] leading-relaxed mb-8">
+              {successMessage}
             </p>
-            
-            <button 
-              type="button"
-              onClick={handleOpenSmsApp}
-              className="btn-primary w-full py-3.5 text-[15px] font-semibold rounded-lg shadow-sm hover:shadow-md transition-all mb-4 cursor-pointer"
-            >
-              Verify Phone via SMS
-            </button>
-
-            <div className="flex items-center justify-center gap-2 text-xs text-brand-slate mt-2 animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-              Waiting for verification SMS...
-            </div>
+            <Link href="/" className="btn-primary inline-block px-8 py-3 text-[14px] font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
+              Go to Homepage
+            </Link>
           </div>
         ) : (
           <>
@@ -174,16 +114,16 @@ function SignupForm() {
             )}
 
             <form onSubmit={handleSignup} className="space-y-4">
-              {/* Phone */}
+              {/* Email */}
               <div>
                 <label className="block text-xs font-bold text-brand-navy uppercase tracking-wider mb-2">
-                  Phone Number <span className="text-brand-blue">*</span>
+                  Email Address <span className="text-brand-blue">*</span>
                 </label>
                 <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+919999999999"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="john.doe@example.com"
                   disabled={loading}
                   required
                   className="form-input text-[14px] disabled:opacity-50"
@@ -277,7 +217,6 @@ function SignupForm() {
           </>
         )}
       </div>
-
     </AuthLayout>
   );
 }
